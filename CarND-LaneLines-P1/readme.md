@@ -74,4 +74,4 @@ would also mean that there will be a lot more external noise that creeps in...
 ### Improvements to investigate
 - use a more generalised form of the hough transform that works with curves, (todo:look up GeneralizedHough Transform)
 - model the curves as a set of very short lines
-- modify the pipeline/ video processing pipeline so you can feed in params from 1 iteration to the next, ie if in frame 1, the bottom x value is at _x<sub>a</sub>_, then at frame 2 the bottom x value shouldn't be more than &#177 <span>&#916</span> &#949 from _x<sub>a</sub>_
+- modify the pipeline/ video processing pipeline so you can feed in params from 1 iteration to the next, ie if in frame 1, the bottom x value is at _x<sub>a</sub>_, then at frame 2 the bottom x value shouldn't be more than &#177; &#916;&#949; from _x<sub>a</sub>_ (where &#949; is small)
