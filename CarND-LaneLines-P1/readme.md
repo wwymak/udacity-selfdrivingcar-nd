@@ -10,7 +10,6 @@ The output videos are in the [test videos output](https://github.com/wwymak/udac
 
 ---
 
-
 ### Current Detection Pipeline:
 ##### 1. Convert image to grayscale:
 
