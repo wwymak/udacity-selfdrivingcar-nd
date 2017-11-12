@@ -3,36 +3,30 @@
 ---
 This goal of this project is to build, train and test neural network architectures to classify traffic signs. The dataset used is the [German Traffic Sign Dataset](http://benchmark.ini.rub.de/?section=gtsrb&subsection=dataset)
 
-**Build a Traffic Sign Recognition Project**
+The full code, including dataset preprocessing, the networks, training results etc are in this [noteobok](https://github.com/wwymak/udacity-selfdrivingcar-nd/tree/master/CarND-Traffic-Sign-Classifier-Project/Traffic_Sign_Classifier.ipynb)
 
-The goals / steps of this project are the following:
-* Load the data set (see below for links to the project data set)
-* Explore, summarize and visualize the data set
-* Design, train and test a model architecture
-* Use the model to make predictions on new images
-* Analyze the softmax probabilities of the new images
-* Summarize the results with a written report
+The following are some highlights from the project
 
+##### Setup
 
----
-###Writeup / README
+- The actual [provided dataset](https://d17h27t6h515a5.cloudfront.net/topher/2017/February/5898cd6f_traffic-signs-data/traffic-signs-data.zip) has been preprocessed slightly so it has
+all been resized to 32 x 32 x3 images
 
-####1. Provide a Writeup / README that includes all the rubric points and how you addressed each one. You can submit your writeup as markdown or pdf. You can use this template as a guide for writing the report. The submission includes the project code.
+- Besides the usual numpy, pandas etc packages, I am also using keras with tensorflow backend for the CNN, as it lets me explore more easily without getting hung up on low level tensorflow apis.
 
-You're reading it! and here is a link to my [project code](https://github.com/udacity/CarND-Traffic-Sign-Classifier-Project/blob/master/Traffic_Sign_Classifier.ipynb)
+##### Data Set Summary
 
-##### Data Set Summary & Exploration
+Here are some rescaled example images from the dataset
+![example images]('https://github.com/wwymak/udacity-selfdrivingcar-nd/blob/master/CarND-Traffic-Sign-Classifier-Project/examples/train_examples.jpg')
 
-####1. Provide a basic summary of the data set. In the code, the analysis should be done using python, numpy and/or pandas methods rather than hardcoding results manually.
+Summary stats of the provided training/validation/test datsets:
 
-I used the pandas library to calculate summary statistics of the traffic
-signs data set:
+- Number of training examples = 34799
+- Number of validation examples = 4410
+- Number of testing examples = 12630
+- Image data shape = [32, 32, 3]
+- Number of classes = 43
 
-* The size of training set is ?
-* The size of the validation set is ?
-* The size of test set is ?
-* The shape of a traffic sign image is ?
-* The number of unique classes/labels in the data set is ?
 
 ####2. Include an exploratory visualization of the dataset.
 
