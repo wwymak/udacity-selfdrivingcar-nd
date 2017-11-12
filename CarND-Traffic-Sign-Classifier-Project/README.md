@@ -17,7 +17,7 @@ all been resized to 32 x 32 x3 images
 ##### Data Set Summary
 
 Here are some rescaled example images from the dataset
-![example images]('https://github.com/wwymak/udacity-selfdrivingcar-nd/blob/master/CarND-Traffic-Sign-Classifier-Project/examples/train_examples.jpg')
+![example images](https://github.com/wwymak/udacity-selfdrivingcar-nd/blob/master/CarND-Traffic-Sign-Classifier-Project/examples/train_examples.jpg)
 
 Summary stats of the provided training/validation/test datsets:
 
