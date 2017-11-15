@@ -27,14 +27,23 @@ Summary stats of the provided training/validation/test datsets:
 - Image data shape = [32, 32, 3]
 - Number of classes = 43
 
+##### Distribution of classes:
 
-####2. Include an exploratory visualization of the dataset.
+Ideally, the number of training samples for each class should be roughly equal, as otherwise the network might not learn enough
+details about minority classes to be able to predict them at all. So as a first check, this is what the class distribution looks like
+for the training and validation sets:
 
-Here is an exploratory visualization of the data set. It is a bar chart showing how the data ...
+![training data distribution](https://github.com/wwymak/udacity-selfdrivingcar-nd/blob/master/CarND-Traffic-Sign-Classifier-Project/examples/train_distribution.jpg)
 
-![alt text][image1]
+![validation data distribution](https://github.com/wwymak/udacity-selfdrivingcar-nd/blob/master/CarND-Traffic-Sign-Classifier-Project/examples/validation_distribution.jpg)
 
-###Design and Test a Model Architecture
+As can be seen, the number of samples for classes are quite different. Two possible strategies to address this-- make 'fake' images by image
+augementaion, e.g. rotation, shifting etc for the classes with small samples, or to use the `class_weight` param in keras fit which takes this into account. (According to [keras docs](https://keras.io/models/sequential/), the class_weight does
+    > class_weight: Optional dictionary mapping class indices (integers) to a weight (float) value, used for weighting the loss function (during training only). This can be useful to tell the model to "pay more attention" to samples from an under-represented class.
+
+Since the class weights can be easily calculated, I used this for a first attempt at training two networks (since if this gives a really good result then there may be no real need to do very fancy data preprocessing)
+
+### Model Architectures
 
 ####1. Describe how you preprocessed the image data. What techniques were chosen and why did you choose these techniques? Consider including images showing the output of each preprocessing technique. Pre-processing refers to techniques such as converting to grayscale, normalization, etc. (OPTIONAL: As described in the "Stand Out Suggestions" part of the rubric, if you generated additional data for training, describe why you decided to generate additional data, how you generated the data, and provide example images of the additional data. Then describe the characteristics of the augmented training set like number of images in the set, number of images for each class, etc.)
 
