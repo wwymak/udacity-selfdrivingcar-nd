@@ -72,21 +72,82 @@ I experimented with two different models:
 1. leNet based--
 2. vgg based--
 
-hyperparameters: I used the default hyperparameters from keras: it uses the Xavier initialisation for weights and zero bias initialisation. Xavier initialisation... (TODO explain Xavier initialisation)
+##### hyperparameters:
+Weights: I used [Xavier initialisation](http://proceedings.mlr.press/v9/glorot10a/glorot10a.pdf) which takes out some of the harder guesswork in hyperparmeters.
 
-I also calculated the distribution of classes and used the `class_weight` params in keras training.
+Bias: I used the usual zeros initialisation.
 
 Number of epochs: I found that approximately 30-40 epochs on the vgg like architecture yields a good validation accuracy (approx 96-97%), and a test accuracy of ~95%. The epoch number is not fixed beforehand. Rather, I use the 'early stopping' callback in keras to stop training once 5 epochs has passed without the validation loss going down. (The logic behind early stopping is that if you train the network further, the network starts overfitting on the trianing example and the validation loss actually go up again, which means it would not generalise well to test images)
 
-My final model consisted of the following layers:
+My final model (inspired by vgg) consisted of the following layers:
+```
+_________________________________________________________________
+Layer (type)                 Output Shape              Param #   
+=================================================================
+set1_conv1 (Conv2D)          (None, 32, 32, 32)        896       
+_________________________________________________________________
+set1_conv2 (Conv2D)          (None, 32, 32, 32)        9248      
+_________________________________________________________________
+set1_pool (MaxPooling2D)     (None, 16, 16, 32)        0         
+_________________________________________________________________
+set2_conv1 (Conv2D)          (None, 16, 16, 64)        18496     
+_________________________________________________________________
+set2_conv2 (Conv2D)          (None, 16, 16, 64)        36928     
+_________________________________________________________________
+set2_conv3 (Conv2D)          (None, 16, 16, 64)        36928     
+_________________________________________________________________
+set2_pool (MaxPooling2D)     (None, 8, 8, 64)          0         
+_________________________________________________________________
+flatten_1 (Flatten)          (None, 4096)              0         
+_________________________________________________________________
+fc1 (Dense)                  (None, 128)               524416    
+_________________________________________________________________
+dropout_1 (Dropout)          (None, 128)               0         
+_________________________________________________________________
+fc2 (Dense)                  (None, 84)                10836     
+_________________________________________________________________
+final (Dense)                (None, 43)                3655      
+=================================================================
+```
+
+```
+def vggLike(ksize=(2,2), dropout=0.25): #taking my inspiration from vgg, a deeper network
+    input_shape = image_shape
+    model = Sequential()
+    model.add(Conv2D(32, kernel_size=ksize, activation='relu', padding='same', name='set1_conv1',input_shape=input_shape))
+    model.add(Conv2D(32, kernel_size=ksize, activation='relu', padding='same', name='set1_conv2'))
+    model.add(MaxPooling2D(pool_size=(2, 2),strides=(2, 2), name='set1_pool'))
+
+    model.add(Conv2D(64, kernel_size=ksize, activation='relu', padding='same', name='set2_conv1'))
+    model.add(Conv2D(64, kernel_size=ksize, activation='relu', padding='same', name='set2_conv2'))
+    model.add(Conv2D(64, kernel_size=ksize, activation='relu', padding='same', name='set2_conv3'))
+    model.add(MaxPooling2D(pool_size=(2, 2), strides=(2, 2),name='set2_pool'))
+
+    model.add(Flatten())
+    model.add(Dense(128, activation='relu', name='fc1'))
+    model.add(Dropout(dropout))
+    model.add(Dense(84, activation='relu' , name='fc2'))
+    model.add(Dense(n_classes, activation='softmax', name='final'))
+    model.compile(loss=categorical_crossentropy,
+              optimizer=Adam(),
+              metrics=['accuracy'])
+    return model```
 
 | Layer         		|     Description	        					|
 |:---------------------:|:---------------------------------------------:|
 | Input         		| 32x32x3 RGB image   							|
+| Convolution 3x3     	| 1x1 stride, same padding, outputs 32x32x32 	|
+| RELU					|												|
+| Convolution 3x3     	| 1x1 stride, same padding, outputs 32x32x32 	|
+| RELU					|												|
+| Max pooling	      	| 2x2 stride,  outputs 16x16x32				    |
 | Convolution 3x3     	| 1x1 stride, same padding, outputs 32x32x64 	|
 | RELU					|												|
-| Max pooling	      	| 2x2 stride,  outputs 16x16x64 				|
-| Convolution 3x3	    | etc.      									|
+| Convolution 3x3     	| 1x1 stride, same padding, outputs 32x32x64 	|
+| RELU					|												|
+| Convolution 3x3     	| 1x1 stride, same padding, outputs 32x32x64 	|
+| RELU					|												|
+
 | Fully connected		| etc.        									|
 | Softmax				| etc.        									|
 |						|												|
