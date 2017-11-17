@@ -39,7 +39,8 @@ for the training and validation sets:
 
 As can be seen, the number of samples for classes are quite different. Two possible strategies to address this-- make 'fake' images by image
 augementaion, e.g. rotation, shifting etc for the classes with small samples, or to use the `class_weight` param in keras fit which takes this into account. (According to [keras docs](https://keras.io/models/sequential/), the class_weight does
-    > class_weight: Optional dictionary mapping class indices (integers) to a weight (float) value, used for weighting the loss function (during training only). This can be useful to tell the model to "pay more attention" to samples from an under-represented class.
+
+>  class_weight: Optional dictionary mapping class indices (integers) to a weight (float) value, used for weighting the loss function (during training only). This can be useful to tell the model to "pay more attention" to samples from an under-represented class.
 
 Since the class weights can be easily calculated, I used this for a first attempt at training two networks (since if this gives a really good result then there may be no real need to do very fancy data preprocessing)
 
@@ -72,66 +73,10 @@ I experimented with two different models:
 1. leNet based--
 2. vgg based--
 
-##### hyperparameters:
-Weights: I used [Xavier initialisation](http://proceedings.mlr.press/v9/glorot10a/glorot10a.pdf) which takes out some of the harder guesswork in hyperparmeters.
 
-Bias: I used the usual zeros initialisation.
-
-Number of epochs: I found that approximately 30-40 epochs on the vgg like architecture yields a good validation accuracy (approx 96-97%), and a test accuracy of ~95%. The epoch number is not fixed beforehand. Rather, I use the 'early stopping' callback in keras to stop training once 5 epochs has passed without the validation loss going down. (The logic behind early stopping is that if you train the network further, the network starts overfitting on the trianing example and the validation loss actually go up again, which means it would not generalise well to test images)
 
 My final model (inspired by vgg) consisted of the following layers:
-```
-_________________________________________________________________
-Layer (type)                 Output Shape              Param #   
-=================================================================
-set1_conv1 (Conv2D)          (None, 32, 32, 32)        896       
-_________________________________________________________________
-set1_conv2 (Conv2D)          (None, 32, 32, 32)        9248      
-_________________________________________________________________
-set1_pool (MaxPooling2D)     (None, 16, 16, 32)        0         
-_________________________________________________________________
-set2_conv1 (Conv2D)          (None, 16, 16, 64)        18496     
-_________________________________________________________________
-set2_conv2 (Conv2D)          (None, 16, 16, 64)        36928     
-_________________________________________________________________
-set2_conv3 (Conv2D)          (None, 16, 16, 64)        36928     
-_________________________________________________________________
-set2_pool (MaxPooling2D)     (None, 8, 8, 64)          0         
-_________________________________________________________________
-flatten_1 (Flatten)          (None, 4096)              0         
-_________________________________________________________________
-fc1 (Dense)                  (None, 128)               524416    
-_________________________________________________________________
-dropout_1 (Dropout)          (None, 128)               0         
-_________________________________________________________________
-fc2 (Dense)                  (None, 84)                10836     
-_________________________________________________________________
-final (Dense)                (None, 43)                3655      
-=================================================================
-```
 
-```
-def vggLike(ksize=(2,2), dropout=0.25): #taking my inspiration from vgg, a deeper network
-    input_shape = image_shape
-    model = Sequential()
-    model.add(Conv2D(32, kernel_size=ksize, activation='relu', padding='same', name='set1_conv1',input_shape=input_shape))
-    model.add(Conv2D(32, kernel_size=ksize, activation='relu', padding='same', name='set1_conv2'))
-    model.add(MaxPooling2D(pool_size=(2, 2),strides=(2, 2), name='set1_pool'))
-
-    model.add(Conv2D(64, kernel_size=ksize, activation='relu', padding='same', name='set2_conv1'))
-    model.add(Conv2D(64, kernel_size=ksize, activation='relu', padding='same', name='set2_conv2'))
-    model.add(Conv2D(64, kernel_size=ksize, activation='relu', padding='same', name='set2_conv3'))
-    model.add(MaxPooling2D(pool_size=(2, 2), strides=(2, 2),name='set2_pool'))
-
-    model.add(Flatten())
-    model.add(Dense(128, activation='relu', name='fc1'))
-    model.add(Dropout(dropout))
-    model.add(Dense(84, activation='relu' , name='fc2'))
-    model.add(Dense(n_classes, activation='softmax', name='final'))
-    model.compile(loss=categorical_crossentropy,
-              optimizer=Adam(),
-              metrics=['accuracy'])
-    return model```
 
 | Layer         		|     Description	        					|
 |:---------------------:|:---------------------------------------------:|
@@ -147,24 +92,31 @@ def vggLike(ksize=(2,2), dropout=0.25): #taking my inspiration from vgg, a deepe
 | RELU					|												|
 | Convolution 3x3     	| 1x1 stride, same padding, outputs 32x32x64 	|
 | RELU					|												|
+| Max pooling	      	| 2x2 stride,  outputs 8x8x32				    |
+| Fully connected		| outputs 128  									|
+| RELU					|												|
+| Dropout				| dropout layer  with keep proba=0.25           |
+| Fully connected		| outputs 84  									|
+| RELU					|												|
+| Classification layer	| outputs 43 (num classes)	                    |
 
-| Fully connected		| etc.        									|
-| Softmax				| etc.        									|
-|						|												|
-|						|												|
+##### hyperparameters:
+Weights: I used [Xavier initialisation](http://proceedings.mlr.press/v9/glorot10a/glorot10a.pdf) which takes out some of the harder guesswork in hyperparmeters.
 
+Bias: I used the usual zeros initialisation.
 
+Number of epochs: I found that approximately 30-40 epochs on the vgg like architecture yields a good validation accuracy (approx 96-97%), and a test accuracy of ~95%. The epoch number is not fixed beforehand. Rather, I use the 'early stopping' callback in keras to stop training once 5 epochs has passed without the validation loss going down. (The logic behind early stopping is that if you train the network further, the network starts overfitting on the trianing example and the validation loss actually go up again, which means it would not generalise well to test images)
 
 ####3. Describe how you trained your model. The discussion can include the type of optimizer, the batch size, number of epochs and any hyperparameters such as learning rate.
 
-To train the model, I used an ....
+To train the model, the optimizer used was [Adam](https://arxiv.org/pdf/1412.6980.pdf), with an evaluation metric of accuracy. 
 
 ####4. Describe the approach taken for finding a solution and getting the validation set accuracy to be at least 0.93. Include in the discussion the results on the training, validation and test sets and where in the code these were calculated. Your approach may have been an iterative process, in which case, outline the steps you took to get to the final solution and why you chose those steps. Perhaps your solution involved an already well known implementation or architecture. In this case, discuss why you think the architecture is suitable for the current problem.
 
-My final model results were:
-* training set accuracy of ?
-* validation set accuracy of ?
-* test set accuracy of ?
+The final model results were:
+* training set accuracy of 0.98
+* validation set accuracy of 0.97
+* test set accuracy of 0.96
 
 If an iterative approach was chosen:
 * What was the first architecture that was tried and why was it chosen?
