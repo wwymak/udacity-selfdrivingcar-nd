@@ -43,36 +43,15 @@ augementaion, e.g. rotation, shifting etc for the classes with small samples, or
 >  class_weight: Optional dictionary mapping class indices (integers) to a weight (float) value, used for weighting the loss function (during training only). This can be useful to tell the model to "pay more attention" to samples from an under-represented class.
 
 Since the class weights can be easily calculated, I used this for a first attempt at training two networks (since if this gives a really good result then there may be no real need to do very fancy data preprocessing)
+### Data preprocessing
+
+I normalized the dataset according to the mean of the images such that the range of values goes from 0 to 1. This is in line with the
 
 ### Model Architectures
 
-####1. Describe how you preprocessed the image data. What techniques were chosen and why did you choose these techniques? Consider including images showing the output of each preprocessing technique. Pre-processing refers to techniques such as converting to grayscale, normalization, etc. (OPTIONAL: As described in the "Stand Out Suggestions" part of the rubric, if you generated additional data for training, describe why you decided to generate additional data, how you generated the data, and provide example images of the additional data. Then describe the characteristics of the augmented training set like number of images in the set, number of images for each class, etc.)
-
-As a first step, I decided to convert the images to grayscale because ...
-
-Here is an example of a traffic sign image before and after grayscaling.
-
-![alt text][image2]
-
-As a last step, I normalized the image data because ...
-
-I decided to generate additional data because ...
-
-To add more data to the the data set, I used the following techniques because ...
-
-Here is an example of an original image and an augmented image:
-
-![alt text][image3]
-
-The difference between the original data set and the augmented data set is the following ...
-
-
-####2. Describe what your final model architecture looks like including model type, layers, layer sizes, connectivity, etc.) Consider including a diagram and/or table describing the final model.
-
 I experimented with two different models:
-1. leNet based--
-2. vgg based--
-
+1. leNet based, with fewer layers to see what the 'baseline' result would look like, and also
+2. vgg based -- I copied the structure of the first 2 conv blocks of the vgg network, with minor adjustments to the filter params. I didn't put in the 3rd conv block since the starting images are only 32x32 and any further scaling down will mean there's hardly any pixels left! I found quite good results in the validation accuracy so decided to go with this architecture.
 
 
 My final model (inspired by vgg) consisted of the following layers:
@@ -107,13 +86,13 @@ Bias: I used the usual zeros initialisation.
 
 Number of epochs: I found that approximately 30-40 epochs on the vgg like architecture yields a good validation accuracy (approx 96-97%), and a test accuracy of ~95%. The epoch number is not fixed beforehand. Rather, I use the 'early stopping' callback in keras to stop training once 5 epochs has passed without the validation loss going down. (The logic behind early stopping is that if you train the network further, the network starts overfitting on the trianing example and the validation loss actually go up again, which means it would not generalise well to test images)
 
-####3. Describe how you trained your model. The discussion can include the type of optimizer, the batch size, number of epochs and any hyperparameters such as learning rate.
+##### Optimizer
 
-To train the model, the optimizer used was [Adam](https://arxiv.org/pdf/1412.6980.pdf), with an evaluation metric of accuracy. 
+To train the model, the optimizer used was [Adam](https://arxiv.org/pdf/1412.6980.pdf), with an evaluation metric of accuracy. The Adam optimisation technique is fairly good for this problem as it is fairly forgiving in terms of hyperparmeter tuning, (as hyperparameters such as learning rate gets tweaked based on how the gradients etc are changing)
 
-####4. Describe the approach taken for finding a solution and getting the validation set accuracy to be at least 0.93. Include in the discussion the results on the training, validation and test sets and where in the code these were calculated. Your approach may have been an iterative process, in which case, outline the steps you took to get to the final solution and why you chose those steps. Perhaps your solution involved an already well known implementation or architecture. In this case, discuss why you think the architecture is suitable for the current problem.
+##### Results
 
-The final model results were:
+The final results were (using the deeper vgg like network):
 * training set accuracy of 0.98
 * validation set accuracy of 0.97
 * test set accuracy of 0.96
