@@ -55,7 +55,7 @@ The model was getting a fairly good validation accuracy with this preprocessing.
 I experimented with three different models:
 1. leNet based, with fewer layers, mainly to check that there isn't a mistake in my data preprocessing.
 2. vgg based -- I copied the structure of the first 2 conv blocks of the vgg network, with minor adjustments to the filter params. I didn't put in the 3rd conv block since the starting images are only 32x32 and any further scaling down will mean there's hardly any pixels left. The validation accuracy of this architecture is > 96% with image augementation. Vgg was chosen as the base as it had a really good result in imagenet and is straighforward to implement. While traffic signs are not part of imagenet the nature of the photos are very similar
-3. multiscale CNN  -- in testing dataset I achieved accuracy of 99%, and and accuracy of 99.6% on the validation set.
+3. multiscale CNN  -- similar to the architecture above, but with output from the 1st conv block feeding directly into the fully connected layer after the 2nd conv block. The argument behind why this might work better is that both simple and more complex features are used for learning (this is following along the architecture in Yann LeCun's work on the same task http://yann.lecun.com/exdb/publis/pdf/sermanet-ijcnn-11.pdf ). This model has the best result-- in testing dataset I achieved accuracy of 99%, and and accuracy of 99.6% on the validation set.
 
 
 Layers in the vgg like model:
@@ -66,27 +66,38 @@ Layers in the vgg like model:
 | Input         		| 32x32x3 RGB image   							|
 | Convolution 3x3     	| 1x1 stride, same padding, outputs 32x32x32 	|
 | RELU					|												|
+| BatchNorm             |                                               |
 | Convolution 3x3     	| 1x1 stride, same padding, outputs 32x32x32 	|
 | RELU					|												|
+| BatchNorm             |                                               |
 | Max pooling	      	| 2x2 stride,  outputs 16x16x32				    |
 | Convolution 3x3     	| 1x1 stride, same padding, outputs 32x32x64 	|
 | RELU					|												|
+| BatchNorm             |                                               |
 | Convolution 3x3     	| 1x1 stride, same padding, outputs 32x32x64 	|
 | RELU					|												|
+| BatchNorm             |                                               |
 | Convolution 3x3     	| 1x1 stride, same padding, outputs 32x32x64 	|
 | RELU					|												|
+| BatchNorm             |                                               |
 | Max pooling	      	| 2x2 stride,  outputs 8x8x32				    |
-| Fully connected		| outputs 1024  									|
+| Fully connected		| outputs 1024  								|
 | RELU					|												|
 | Dropout				| dropout layer  with keep proba=0.25           |
 | Fully connected		| outputs 512  									|
 | RELU					|												|
 | Classification layer	| outputs 43 (num classes)	                    |
 
+Layers in the multiscale cnn model:
+
+These are the same as above, but the output from the 1st maxpool layer is also fed directly into the fully connected layer.
+
 ##### hyperparameters:
 Weights: I used [Xavier initialisation](http://proceedings.mlr.press/v9/glorot10a/glorot10a.pdf) which takes out some of the harder guesswork in hyperparmeters.
 
 Bias: I used the usual zeros initialisation.
+
+Dropout: this was used (with dropout probability of 0.25) to prevent overfitting. The value used gave a very high train and validation accuracy so I didn't further tune it.
 
 Number of epochs: I found that approximately 30-40 epochs on the vgg like architecture yields a good validation accuracy (approx 96-97%), and a test accuracy of ~95%. For the multiscale cnn, I used epochs of up to 80, but used the Modelcheckpoint callback from keras to save the best model for testing.
 
@@ -104,35 +115,21 @@ The final results were
 * test set accuracy of 0.96
 
 **Multiscale cnn**
-* training set accuracy of 99.
+* training set accuracy of 99.8%
 * validation set accuracy of 99.6%
 * test set accuracy of 99%
 
-If an iterative approach was chosen:
-* What was the first architecture that was tried and why was it chosen?
-* What were some problems with the initial architecture?
-* How was the architecture adjusted and why was it adjusted? Typical adjustments could include choosing a different model architecture, adding or taking away layers (pooling, dropout, convolution, etc), using an activation function or changing the activation function. One common justification for adjusting an architecture would be due to overfitting or underfitting. A high accuracy on the training set but low accuracy on the validation set indicates over fitting; a low accuracy on both sets indicates under fitting.
-* Which parameters were tuned? How were they adjusted and why?
-* What are some of the important design choices and why were they chosen? For example, why might a convolution layer work well with this problem? How might a dropout layer help with creating a successful model?
-
-If a well known architecture was chosen:
-* What architecture was chosen?
-* Why did you believe it would be relevant to the traffic sign application?
-* How does the final model's accuracy on the training, validation and test set provide evidence that the model is working well?
+In all of the models, I plotted the train/validation loss and accuracy to
+check that the model is not overfitting or underfitting (both the train and validation losses were almost dropping to zero so no issues of those)
 
 
-###Test a Model on New Images
+##### Testing the multiscale model
 
-####1. Choose five German traffic signs found on the web and provide them in the report. For each image, discuss what quality or qualities might be difficult to classify.
+8 traffic signs photos from the internet was used in testing the model
 
-Here are five German traffic signs that I found on the web:
+Results are :
+![test images](https://github.com/wwymak/udacity-selfdrivingcar-nd/blob/master/CarND-Traffic-Sign-Classifier-Project/examples/test_results.png)
 
-![alt text][image4] ![alt text][image5] ![alt text][image6]
-![alt text][image7] ![alt text][image8]
-
-The first image might be difficult to classify because ...
-
-####2. Discuss the model's predictions on these new traffic signs and compare the results to predicting on the test set. At a minimum, discuss what the predictions were, the accuracy on these new predictions, and compare the accuracy to the accuracy on the test set (OPTIONAL: Discuss the results in more detail as described in the "Stand Out Suggestions" part of the rubric).
 
 Here are the results of the prediction:
 
