@@ -42,19 +42,23 @@ augementaion, e.g. rotation, shifting etc for the classes with small samples, or
 
 >  class_weight: Optional dictionary mapping class indices (integers) to a weight (float) value, used for weighting the loss function (during training only). This can be useful to tell the model to "pay more attention" to samples from an under-represented class.
 
-Since the class weights can be easily calculated, I used this for a first attempt at training two networks (since if this gives a really good result then there may be no real need to do very fancy data preprocessing)
+Since the class weights can be easily calculated, I used this for a first attempt at training two networks (since if this gives a really good result then there may be no real need to do very fancy data augmentation)
+
 ### Data preprocessing
 
-I normalized the dataset according to the mean of the images such that the range of values goes from 0 to 1. This is in line with the
+As some training images are quite blurry, I used a histogramEqualisation function from opencv to enhance the contrast. The images are first converted to [YUV colorspace](https://en.wikipedia.org/wiki/YUV) and the Y channel was the one that was used in equalisation (so brightness was normalised). Then, the images are normalised by the sample mean.
+
+The model was getting a fairly good validation accuracy with this preprocessing. However, I am hoping to see a even better accuracy (and a model that can generalise well) with data augmentation (e.g. rotating images, shear, shifts in x and y direction). The image augementaion is handled by using the keras `ImageDataGenerator` which has options for rotation, shift, etc. It also works as a generator for the fit function so even if I decide to use the process on a larger dataset I can do so without running into memory issues.
 
 ### Model Architectures
 
-I experimented with two different models:
-1. leNet based, with fewer layers to see what the 'baseline' result would look like, and also
-2. vgg based -- I copied the structure of the first 2 conv blocks of the vgg network, with minor adjustments to the filter params. I didn't put in the 3rd conv block since the starting images are only 32x32 and any further scaling down will mean there's hardly any pixels left! I found quite good results in the validation accuracy so decided to go with this architecture.
+I experimented with three different models:
+1. leNet based, with fewer layers, mainly to check that there isn't a mistake in my data preprocessing.
+2. vgg based -- I copied the structure of the first 2 conv blocks of the vgg network, with minor adjustments to the filter params. I didn't put in the 3rd conv block since the starting images are only 32x32 and any further scaling down will mean there's hardly any pixels left. The validation accuracy of this architecture is > 96% with image augementation. Vgg was chosen as the base as it had a really good result in imagenet and is straighforward to implement. While traffic signs are not part of imagenet the nature of the photos are very similar
+3. multiscale CNN  -- in testing dataset I achieved accuracy of 99%, and and accuracy of 99.6% on the validation set.
 
 
-My final model (inspired by vgg) consisted of the following layers:
+Layers in the vgg like model:
 
 
 | Layer         		|     Description	        					|
@@ -72,10 +76,10 @@ My final model (inspired by vgg) consisted of the following layers:
 | Convolution 3x3     	| 1x1 stride, same padding, outputs 32x32x64 	|
 | RELU					|												|
 | Max pooling	      	| 2x2 stride,  outputs 8x8x32				    |
-| Fully connected		| outputs 128  									|
+| Fully connected		| outputs 1024  									|
 | RELU					|												|
 | Dropout				| dropout layer  with keep proba=0.25           |
-| Fully connected		| outputs 84  									|
+| Fully connected		| outputs 512  									|
 | RELU					|												|
 | Classification layer	| outputs 43 (num classes)	                    |
 
@@ -84,7 +88,7 @@ Weights: I used [Xavier initialisation](http://proceedings.mlr.press/v9/glorot10
 
 Bias: I used the usual zeros initialisation.
 
-Number of epochs: I found that approximately 30-40 epochs on the vgg like architecture yields a good validation accuracy (approx 96-97%), and a test accuracy of ~95%. The epoch number is not fixed beforehand. Rather, I use the 'early stopping' callback in keras to stop training once 5 epochs has passed without the validation loss going down. (The logic behind early stopping is that if you train the network further, the network starts overfitting on the trianing example and the validation loss actually go up again, which means it would not generalise well to test images)
+Number of epochs: I found that approximately 30-40 epochs on the vgg like architecture yields a good validation accuracy (approx 96-97%), and a test accuracy of ~95%. For the multiscale cnn, I used epochs of up to 80, but used the Modelcheckpoint callback from keras to save the best model for testing.
 
 ##### Optimizer
 
@@ -92,10 +96,17 @@ To train the model, the optimizer used was [Adam](https://arxiv.org/pdf/1412.698
 
 ##### Results
 
-The final results were (using the deeper vgg like network):
+The final results were
+
+**Using the deeper vgg like network:**
 * training set accuracy of 0.98
 * validation set accuracy of 0.97
 * test set accuracy of 0.96
+
+**Multiscale cnn**
+* training set accuracy of 99.
+* validation set accuracy of 99.6%
+* test set accuracy of 99%
 
 If an iterative approach was chosen:
 * What was the first architecture that was tried and why was it chosen?
