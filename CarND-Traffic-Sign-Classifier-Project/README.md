@@ -52,6 +52,9 @@ As some training images are quite blurry, I used a histogramEqualisation functio
 
 The model was getting a fairly good validation accuracy with this preprocessing. However, I am hoping to see a even better accuracy (and a model that can generalise well) with data augmentation (e.g. rotating images, shear, shifts in x and y direction). The image augementaion is handled by using the keras `ImageDataGenerator` which has options for rotation, shift, etc. It also works as a generator for the fit function so even if I decide to use the process on a larger dataset I can do so without running into memory issues.
 
+Here is example of what the image augementation does on a test image is:
+![](https://github.com/wwymak/udacity-selfdrivingcar-nd/blob/master/CarND-Traffic-Sign-Classifier-Project/examples/data_augment.png)
+
 ### Model Architectures
 
 I experimented with three different models:
@@ -133,7 +136,7 @@ Results are :
 ![test images](https://github.com/wwymak/udacity-selfdrivingcar-nd/blob/master/CarND-Traffic-Sign-Classifier-Project/examples/test_results.png)
 
 
-The model was able to correctly predict 5 of the 8 traffic signs, which gives an accuracy of 68%.
+The model was able to correctly predict 6 of the 8 traffic signs, which gives an accuracy of 75%.
 
 
 ##### Further work
