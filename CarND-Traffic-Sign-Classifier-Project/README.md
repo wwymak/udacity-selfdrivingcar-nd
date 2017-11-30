@@ -141,7 +141,7 @@ Results are :
 ![test images](https://github.com/wwymak/udacity-selfdrivingcar-nd/blob/master/CarND-Traffic-Sign-Classifier-Project/examples/test_results.png)
 
 
-The model was able to correctly predict 6 of the 8 traffic signs, which gives an accuracy of 75%.
+The model was able to correctly predict 6 of the 8 traffic signs, which gives an accuracy of 75%. This is quite a bit lower than the test set accuracy. However, the test set has a lot more images so this low accuracy might be due to chance. Also, the test set was already cropped to 32 x 32 and there might be differences in how this is done compared to these 8 images which might affect how accurate the model does (e.g. the images in the dataset seems to be really zoomed into the signs whereas in these 8 test images there is a lot of background)
 
 
 ##### Further work
