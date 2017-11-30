@@ -5,6 +5,8 @@ This goal of this project is to build, train and test neural network architectur
 
 The full code, including dataset preprocessing, the networks, training results etc are in this [noteobok](https://github.com/wwymak/udacity-selfdrivingcar-nd/tree/master/CarND-Traffic-Sign-Classifier-Project/Traffic_Sign_Classification.ipynb)
 
+*  note: Using keras version 2.1.1 and tensorflow v1.3
+
 Some of the experiments (e.g. variations in image preprocessing, network architecture) are also as ipynb notebooks in that directory. However, these are messier and less well annotated than the main notebook.
 
 The following are some highlights from the project
@@ -53,7 +55,10 @@ As some training images are quite blurry, I used a histogramEqualisation functio
 The model was getting a fairly good validation accuracy with this preprocessing. However, I am hoping to see a even better accuracy (and a model that can generalise well) with data augmentation (e.g. rotating images, shear, shifts in x and y direction). The image augementaion is handled by using the keras `ImageDataGenerator` which has options for rotation, shift, etc. It also works as a generator for the fit function so even if I decide to use the process on a larger dataset I can do so without running into memory issues.
 
 Here is example of what the image augementation does on a test image is:
+
 ![](https://github.com/wwymak/udacity-selfdrivingcar-nd/blob/master/CarND-Traffic-Sign-Classifier-Project/examples/data_augment.png)
+
+[This notebook](https://github.com/wwymak/udacity-selfdrivingcar-nd/blob/master/CarND-Traffic-Sign-Classifier-Project/image_preprocessing.ipynb) compares the results from training with and without the augmentation. While the difference is not huge, and some of the improvements might be due to random chance, it still seems that image augmentation does help in increasing the test accuracy.
 
 ### Model Architectures
 
