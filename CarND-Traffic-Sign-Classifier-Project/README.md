@@ -3,7 +3,7 @@
 ---
 This goal of this project is to build, train and test neural network architectures to classify traffic signs. The dataset used is the [German Traffic Sign Dataset](http://benchmark.ini.rub.de/?section=gtsrb&subsection=dataset)
 
-The full code, including dataset preprocessing, the networks, training results etc are in this [noteobok](https://github.com/wwymak/udacity-selfdrivingcar-nd/tree/master/CarND-Traffic-Sign-Classifier-Project/Traffic_Sign_Classification.ipynb)
+The full code, including dataset preprocessing, the networks, training results etc are in this [notebook](https://github.com/wwymak/udacity-selfdrivingcar-nd/tree/master/CarND-Traffic-Sign-Classifier-Project/Traffic_Sign_Classification.ipynb)
 
 *  note: Using keras version 2.1.1 and tensorflow v1.3
 
@@ -46,15 +46,15 @@ augementaion, e.g. rotation, shifting etc for the classes with small samples, or
 
 >  class_weight: Optional dictionary mapping class indices (integers) to a weight (float) value, used for weighting the loss function (during training only). This can be useful to tell the model to "pay more attention" to samples from an under-represented class.
 
-Since the class weights can be easily calculated, I used this for a first attempt at training two networks (since if this gives a really good result then there may be no real need to do very fancy data augmentation)
+Since the class weights can be easily calculated, I initially plan on using this for a first attempt at training the networks. However, I found that the results was really good without requiring the class weight tweaking, so perhaps there are enough training data that the unbalanced classes does not affect the results overmuch.
 
 ### Data preprocessing
 
 As some training images are quite blurry, I used a histogramEqualisation function from opencv to enhance the contrast. The images are first converted to [YUV colorspace](https://en.wikipedia.org/wiki/YUV) and the Y channel was the one that was used in equalisation (so brightness was normalised). Then, the images are normalised by the sample mean.
 
-The model was getting a fairly good validation accuracy with this preprocessing. However, I am hoping to see a even better accuracy (and a model that can generalise well) with data augmentation (e.g. rotating images, shear, shifts in x and y direction). The image augementaion is handled by using the keras `ImageDataGenerator` which has options for rotation, shift, etc. It also works as a generator for the fit function so even if I decide to use the process on a larger dataset I can do so without running into memory issues.
+The model was getting a fairly good validation accuracy with this preprocessing. However, I am hoping to see a even better accuracy (and a model that can generalise well) with data augmentation (e.g. rotating images, shear, shifts in x and y direction). The image augmentaion is handled by using the keras `ImageDataGenerator` which has options for rotation, shift, etc. It also works as a generator for the fit function so even if I decide to use the process on a larger dataset I can do so without running into memory issues.
 
-Here is example of what the image augementation does on a test image is:
+Here is example of what the image augmentation does on a test image is:
 
 ![](https://github.com/wwymak/udacity-selfdrivingcar-nd/blob/master/CarND-Traffic-Sign-Classifier-Project/examples/data_augment.png)
 
@@ -145,4 +145,5 @@ The model was able to correctly predict 6 of the 8 traffic signs, which gives an
 
 
 ##### Further work
-* explore grayscale effects
+* can I combine object detection for traffic signs together with a traffic sign classifier?
+* visualising layers of the CNN-- beginnings of this in the CNN vis notebook but there are still some bugs to fix since at the moment different layers seem to look the same...
