@@ -13,6 +13,7 @@ from flask import Flask
 from io import BytesIO
 
 from keras.models import load_model
+import keras.backend as K
 import h5py
 from keras import __version__ as keras_version
 
@@ -118,7 +119,7 @@ if __name__ == '__main__':
     if model_version != keras_version:
         print('You are using Keras version ', keras_version,
               ', but the model was built using ', model_version)
-
+    K.clear_session()
     model = load_model(args.model)
 
     if args.image_folder != '':
