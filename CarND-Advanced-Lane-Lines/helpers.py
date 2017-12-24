@@ -74,3 +74,36 @@ def dir_threshold(img, sobel_kernel=3, thresh=(0, np.pi/2)):
     dir_binary = np.zeros_like(abs_gradient)
     dir_binary[(abs_gradient >= thresh[0]) & (abs_gradient <= thresh[1])] = 1
     return dir_binary
+
+def weighted_img(img, initial_img, α=0.8, β=1., λ=0.):
+        """
+        `img` is an image with lines drawn on it.
+        Should be a blank image (all black) with lines drawn on it.
+
+        `initial_img` should be the image before any processing.
+
+        The result image is computed as follows:
+
+        initial_img * α + img * β + λ
+        NOTE: initial_img and img must be the same shape!
+        """
+        return cv2.addWeighted(initial_img, α, img, β, λ)
+
+def draw_lane_lines(imgInput, left_xvals, right_xvals, yvals):
+    line_canvas = np.zeros_like(imgInput)
+    line_coords_left  = np.int32(np.stack((left_xvals, plotvals), axis = -1))
+    line_coords_right  = np.int32(np.stack((right_xvals, plotvals), axis = -1))
+
+    line_canvas = cv2.polylines(line_canvas, [line_coords_left], False, (255, 0,0), 20)
+    line_canvas = cv2.polylines(line_canvas, [line_coords_right], False, (255, 0,0), 20)
+    points = np.concatenate((line_coords_left, np.flipud(line_coords_right)))
+    cv2.fillPoly(line_canvas, [points], color=[0,255,0])
+    line_canvas_inv = cv2.warpPerspective(line_canvas, Minv, (line_canvas.shape[1], line_canvas.shape[0]), flags=cv2.INTER_LINEAR)
+
+
+    #     img_to_update = cv2.cvtColor(img, cv2.COLOR_BGR2RGB)
+#     img_with_lanes = weighted_img(line_canvas_inv, img_to_update, 1., 0.4)
+
+    img_with_lanes = weighted_img(line_canvas_inv, imgInput, 1., 0.4)
+
+    return img_with_lanes
