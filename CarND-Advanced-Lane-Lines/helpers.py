@@ -6,6 +6,19 @@ def img2Gray(filename):
     img = cv2.imread(filename)
     return cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
 
+def chlaheEqualisze(img):
+    clahe = cv2.createCLAHE(clipLimit=3.0, tileGridSize=(8,8))
+    imgs = []
+    for i in range(img.shape[2]):
+        img_chan = img[:,:,i]
+        cl = clahe.apply(img_chan)
+        imgs.append(cl)
+
+    eq_img = np.stack(np.array(imgs), axis=0)
+    eq_img = np.rollaxis(eq_img, 0, 3)
+    output = eq_img.copy()
+    return output
+
 def draw_lines(img, lines, color=[255, 0, 0], thickness=2):
     """
     This function draws `lines` with `color` and `thickness`.
@@ -89,10 +102,10 @@ def weighted_img(img, initial_img, α=0.8, β=1., λ=0.):
         """
         return cv2.addWeighted(initial_img, α, img, β, λ)
 
-def draw_lane_lines(imgInput, left_xvals, right_xvals, yvals):
+def draw_lane_lines(imgInput, left_xvals, right_xvals, yvals, Minv):
     line_canvas = np.zeros_like(imgInput)
-    line_coords_left  = np.int32(np.stack((left_xvals, plotvals), axis = -1))
-    line_coords_right  = np.int32(np.stack((right_xvals, plotvals), axis = -1))
+    line_coords_left  = np.int32(np.stack((left_xvals, yvals), axis = -1))
+    line_coords_right  = np.int32(np.stack((right_xvals, yvals), axis = -1))
 
     line_canvas = cv2.polylines(line_canvas, [line_coords_left], False, (255, 0,0), 20)
     line_canvas = cv2.polylines(line_canvas, [line_coords_right], False, (255, 0,0), 20)
@@ -106,4 +119,4 @@ def draw_lane_lines(imgInput, left_xvals, right_xvals, yvals):
 
     img_with_lanes = weighted_img(line_canvas_inv, imgInput, 1., 0.4)
 
-    return img_with_lanes
+    return cv2.cvtColor(img_with_lanes, cv2.COLOR_BGR2RGB)

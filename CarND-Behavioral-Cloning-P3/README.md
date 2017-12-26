@@ -8,19 +8,44 @@ The aim of the project is for the car the drive along the center of track1, and 
 needed for the car to emulate. Also, the car has to learn to navigate round bends, and to handle cases where it steers too
 much to the left or right.
 
-### Processing pipeline considerations:
+Ideally, to help the car to generalise better, I would need to drive it through many different tracks. However, I only gather
+training data on 1 track of the simulator as I find it very hard to drive the car on track 2, and rather than make the car drive
+worse due to bad driving data, I only used data from track1.
+
+#### Image preprocessing
 - No grayscaling: in previous project around lane detection, images are grayscaled for further computer vision algorithms to process.
 However, no grayscaling is used as the road is not of one consistent texture, and nor are there 'standard' lane lines. I believe that
 using all 3 color channels can in fact help the network to learn.
--
+
+
+- converting to the right colorscale: in the image processing pipeline, I am using `cv2.imread` to convert images to numpy arrays. This reads in images in the BGR order whereas in the drive.py file, the images are read in using the `Image` function from Pillow, which is in the RGB order.
+
+- image normalisation
+
+- Image cropping-- only the bottom part of the image corresponding to the road is important for the model
+to determine the steering angle, so as part of the keras model, there is a cropping layer that crops the image height
+from 160px to 65px, removing 70px from the top (where the sky is) and 25px from the bottom (where the front of the car is)
+
+#### Data augmentation
+
+- Flip images: to reduce the chance of the model overfitting on left steering or right steering, I also flipped the images and the
+steering angles so the car can learn to navigate turns better.
+
+- reverse driving. Similar to the above, I also collected data of the car driving the wrong way round on the track to correct for any left hand turn biases.
+
+- add in left and right steering images -- these help in predicting when the car should turn left/right according
+to the road. 
+
+- Centre lane driving. Besides my own data for 'good' centre lane driving, I also used the sample data provided so the model can have a great amount of good data to learn from. Also, the two different datasets with different driving style should help
+with the model performance, especially as I am not that good at
+the actual simulator myself.
+
+- recovery images-- ideally, when the car drive away from the centre of the track, it should learn to go back towards the centre, and to do this, 'recovery' data might be needed, where the model sees images of the sides being too close and it has to fit a higher recovery angle.  However, I tried adding some recovery data to the training set and the car performed worse, not better with the model trained on them. Perhaps, this is due to the quality of the images not being very good (some of the recovery data has a bit of driving towards the sides mixed in). I found the model did well enough without this extra data so rather than spending a lot of time
+manually going through the images and throwing out the bad ones, I decided to only use the other training data instead.
 
 [//]: # (Image References)
 
 [image1]: ./examples/placeholder.png "Model Visualization"
-[image2]: ./examples/placeholder.png "Grayscaling"
-[image3]: ./examples/placeholder_small.png "Recovery Image"
-[image4]: ./examples/placeholder_small.png "Recovery Image"
-[image5]: ./examples/placeholder_small.png "Recovery Image"
 [image6]: ./examples/placeholder_small.png "Normal Image"
 [image7]: ./examples/placeholder_small.png "Flipped Image"
 
@@ -33,10 +58,11 @@ using all 3 color channels can in fact help the network to learn.
 ####1. Submission includes all required files and can be used to run the simulator in autonomous mode
 
 My project includes the following files:
-* model.py containing the script to create and train the model
+* train_nvidia.py containing the script to create and train the model on the architecture used in the Nvidia paper
 * drive.py for driving the car in autonomous mode
 * model.h5 containing a trained convolution neural network
 * writeup_report.md or writeup_report.pdf summarizing the results
+* movie1_nvidia.mp4 is a movie showing the car driving round on the track
 
 ####2. Submission includes functional code
 Using the Udacity provided simulator and my drive.py file, the car can be driven autonomously around the track by executing

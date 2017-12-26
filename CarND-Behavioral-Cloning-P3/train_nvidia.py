@@ -19,12 +19,16 @@ from keras.optimizers import Adam
 from keras.preprocessing.image import ImageDataGenerator
 from keras.regularizers import l2
 
+# logging callback for keras-- outputs validation and training losses per 2 episodes. This is mainly for
+# if using ipython notebooks since the verbose mode tends to crash the browser
 def logger(epoch, logs):
     if epoch %2== 0:
         print(epoch, logs)
 logging_callback = LambdaCallback(on_epoch_end=logger)
 
-# get list of images to use
+# get list of images to use-- each folder is one training set
+
+# data_reverse is driving in the oppositie direction
 data_file_paths = ['data2/', 'data_sample/','data_reverse/']
 samples = []
 for folder in data_file_paths:
@@ -37,11 +41,11 @@ for folder in data_file_paths:
             temp.append(lineout2)
     samples += temp[1:]
 train_samples, validation_samples = train_test_split(samples, test_size=0.1)
-print(train_samples[:3])
+
 
 # using the model structure as per nvidia's end to end self driving car paper, with a cropping
 # layer for removing the unecessary bits (sky etc)
-#  and a normalisation layer
+#  and a normalisation layer to limit the inputs to values that the activation functions work better on (mean 0, max 0.5, range 1)
 def nvidia_model(input_shape):
     inputs = Input(shape=input_shape)
     cropped = Cropping2D(cropping=((70, 25), (0, 0)))(inputs)
