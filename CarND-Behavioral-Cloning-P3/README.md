@@ -1,7 +1,7 @@
 ## Behavioral Cloning Project
 
 This project is to simulate good driving behaviour using deep learning. Data is collected on a simulator track and a
-network is trained such that the car can drive round on the track in autonomous mode
+network is trained such that the car can drive round on the track in autonomous mode.
 
 ## Data Collection:
 The aim of the project is for the car the drive along the center of track1, and thus good centre lane driving data is
@@ -28,17 +28,20 @@ from 160px to 65px, removing 70px from the top (where the sky is) and 25px from 
 
 #### Data augmentation
 
+- Centre lane driving. Besides my own data for 'good' centre lane driving, I also used the sample data provided so the model can have a great amount of good data to learn from. Also, the two different datasets with different driving style should help
+with the model performance, especially as I am not that good at
+the actual simulator myself.
+
 - Flip images: to reduce the chance of the model overfitting on left steering or right steering, I also flipped the images and the
 steering angles so the car can learn to navigate turns better.
 
 - reverse driving. Similar to the above, I also collected data of the car driving the wrong way round on the track to correct for any left hand turn biases.
 
 - add in left and right steering images -- these help in predicting when the car should turn left/right according
-to the road. 
-
-- Centre lane driving. Besides my own data for 'good' centre lane driving, I also used the sample data provided so the model can have a great amount of good data to learn from. Also, the two different datasets with different driving style should help
-with the model performance, especially as I am not that good at
-the actual simulator myself.
+to the road. In the view from the left camera, the steering angle should be less to the left if the image is taken from the
+central camera, and in the view from the right camera, the steering angle should more more to the left if the image is from the
+central camera. The extra data from these cameras help in guiding the model to steer the car more towards the centre. This technique
+works similar to the 'recovery' images and is a lot easier to obtain. (see comment about recovery images below)
 
 - recovery images-- ideally, when the car drive away from the centre of the track, it should learn to go back towards the centre, and to do this, 'recovery' data might be needed, where the model sees images of the sides being too close and it has to fit a higher recovery angle.  However, I tried adding some recovery data to the training set and the car performed worse, not better with the model trained on them. Perhaps, this is due to the quality of the images not being very good (some of the recovery data has a bit of driving towards the sides mixed in). I found the model did well enough without this extra data so rather than spending a lot of time
 manually going through the images and throwing out the bad ones, I decided to only use the other training data instead.
@@ -48,6 +51,22 @@ manually going through the images and throwing out the bad ones, I decided to on
 [image1]: ./examples/placeholder.png "Model Visualization"
 [image6]: ./examples/placeholder_small.png "Normal Image"
 [image7]: ./examples/placeholder_small.png "Flipped Image"
+
+### Relevant Files
+- train_nvidia.py
+- drive.py
+- video.py
+- 
+
+### Running the code
+- use `python train_nvidia.py` to train the model. This will save the model in the relative path `./models/nvidia_generator5.h5`
+(via the keras ModelCheckpoint option). Logs are saved to the ./logs directory so the training can be visualised in Tensorboard.
+
+- use `python drive.py ./models/nvidia_generator5.h5` to run the car in autonomous mode. Note- there _may_ be potential issues with
+running the model in your own machine (rather than the one the model is trained on) as Keras doesn't seem to be able to reload the
+Lambda layer correctly when the model is on a different machine (I trained the same model both with and without the Lambda layer on
+a cloud GPU instance and when trying to run them on my own local machine, the one without the Lambda layer loaded fine but the one with the layer gives an error-- there have been various discussions/issues on the keras repo around this, e.g. https://github.com/keras-team/keras/issues/6442. If I am productionising the code and model , I would definitely need to resolve this,
+but for this project, I train and run drive.py on the same cloud GPU instance, and use that to drive the simulator by forwarding my local port 4567 to the one on the remote machine)
 
 ## Rubric Points
 ###Here I will consider the [rubric points](https://review.udacity.com/#!/rubrics/432/view) individually and describe how I addressed each point in my implementation.  
@@ -61,7 +80,6 @@ My project includes the following files:
 * train_nvidia.py containing the script to create and train the model on the architecture used in the Nvidia paper
 * drive.py for driving the car in autonomous mode
 * model.h5 containing a trained convolution neural network
-* writeup_report.md or writeup_report.pdf summarizing the results
 * movie1_nvidia.mp4 is a movie showing the car driving round on the track
 
 ####2. Submission includes functional code
@@ -90,13 +108,7 @@ The model was trained and validated on different data sets to ensure that the mo
 
 ####3. Model parameter tuning
 
-The model used an adam optimizer, so the learning rate was not tuned manually (model.py line 25).
-
-####4. Appropriate training data
-
-Training data was chosen to keep the vehicle driving on the road. I used a combination of center lane driving, recovering from the left and right sides of the road ...
-
-For details about how I created the training data, see the next section.
+The model used mse as the accurcay param and `model.compile(loss='mse', optimizer='adam')` so the learning rate was not tuned.
 
 ###Model Architecture and Training Strategy
 
