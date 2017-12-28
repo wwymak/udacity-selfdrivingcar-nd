@@ -2,4 +2,3 @@ data
 .DS_Store
 *.zip
 models/*.h5
-!models/nvidia_generator5.h5

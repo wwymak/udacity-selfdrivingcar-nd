@@ -24,7 +24,7 @@ using all 3 color channels can in fact help the network to learn.
 
 - Image cropping-- only the bottom part of the image corresponding to the road is important for the model
 to determine the steering angle, so as part of the keras model, there is a cropping layer that crops the image height
-from 160px to 65px, removing 70px from the top (where the sky is) and 25px from the bottom (where the front of the car is)
+from 160px to 65px, removing 70px from the top (where the sky is) and 25px from the bottom (where the front of the car is). This makes the model quicker to train and require less memory. Also, by cropping out the irrelvant parts of the image, it can prevent the model from training on the wrong features. (e.g. it shouldn't predict steering angles based on whether it can see trees on not.)
 
 #### Data augmentation
 
@@ -53,113 +53,98 @@ manually going through the images and throwing out the bad ones, I decided to on
 [image7]: ./examples/placeholder_small.png "Flipped Image"
 
 ### Relevant Files
-- train_nvidia.py
-- drive.py
-- video.py
-- 
+- train_nvidia.py (for training and saving model)
+- drive.py (for taking output from the model and sending it to the simulator)
+- video.py (converted images from the autonomous session into a video)
+- movie1_nvidia.mp4 (video of the car driving with the model)
+- models/nvidia_generator5.h5 (trained model)
 
 ### Running the code
+- keras version 2.1.1 and tensorflow v.1.3 was used for training and running the model. If you are running the saved model
+with drive.py you will need to check that the keras version in your environment is 2.1.1
 - use `python train_nvidia.py` to train the model. This will save the model in the relative path `./models/nvidia_generator5.h5`
-(via the keras ModelCheckpoint option). Logs are saved to the ./logs directory so the training can be visualised in Tensorboard.
+(via the keras ModelCheckpoint option). Logs are saved to the `logs` directory so the training can be visualised in Tensorboard.
+- also make a directory called data and put the relevant training data in there-- if need be change the `data_file_paths` array in your own code
+- launch TensorBoard with `tensorboard --logdir=./logs` to monitor the training process
 
-- use `python drive.py ./models/nvidia_generator5.h5` to run the car in autonomous mode. Note- there _may_ be potential issues with
+- use `python drive.py ./nvidia_generator5.h5` to run the car in autonomous mode. Note- there _may_ be potential issues with
 running the model in your own machine (rather than the one the model is trained on) as Keras doesn't seem to be able to reload the
 Lambda layer correctly when the model is on a different machine (I trained the same model both with and without the Lambda layer on
 a cloud GPU instance and when trying to run them on my own local machine, the one without the Lambda layer loaded fine but the one with the layer gives an error-- there have been various discussions/issues on the keras repo around this, e.g. https://github.com/keras-team/keras/issues/6442. If I am productionising the code and model , I would definitely need to resolve this,
 but for this project, I train and run drive.py on the same cloud GPU instance, and use that to drive the simulator by forwarding my local port 4567 to the one on the remote machine)
 
-## Rubric Points
-###Here I will consider the [rubric points](https://review.udacity.com/#!/rubrics/432/view) individually and describe how I addressed each point in my implementation.  
-
----
-###Files Submitted & Code Quality
-
-####1. Submission includes all required files and can be used to run the simulator in autonomous mode
-
-My project includes the following files:
-* train_nvidia.py containing the script to create and train the model on the architecture used in the Nvidia paper
-* drive.py for driving the car in autonomous mode
-* model.h5 containing a trained convolution neural network
-* movie1_nvidia.mp4 is a movie showing the car driving round on the track
-
-####2. Submission includes functional code
-Using the Udacity provided simulator and my drive.py file, the car can be driven autonomously around the track by executing
-```sh
-python drive.py model.h5
-```
-
-####3. Submission code is usable and readable
-
-The model.py file contains the code for training and saving the convolution neural network. The file shows the pipeline I used for training and validating the model, and it contains comments to explain how the code works.
 
 ###Model Architecture and Training Strategy
 
-####1. An appropriate model architecture has been employed
+#### Architecture
 
-My model consists of a convolution neural network with 3x3 filter sizes and depths between 32 and 128 (model.py lines 18-24)
+The final model structure (based on that reported from Nvidia, with the extra batchnorm layers added)
+is as follows:
 
-The model includes RELU layers to introduce nonlinearity (code line 20), and the data is normalized in the model using a Keras lambda layer (code line 18).
 
-####2. Attempts to reduce overfitting in the model
+| Layer         		|     Description	        					|
+|:---------------------:|:---------------------------------------------:|
+| Input         		| 160X320x3 RGB image   						|
+| Cropping2D            | Crops Image to 65X320x3 RGB                   |
+| Lambda                | Normalise image to have mean 0 and max min range of 1 |
+| Convolution 5x5     	| 2x2 stride, same padding, outputs 33x160x24 	|
+| RELU					|												|
+| BatchNorm             |                                               |
+| Convolution 5x5     	| 2x2 stride, same padding, outputs 17x80x36 	|
+| RELU					|												|
+| BatchNorm             |                                               |
+| Convolution 5x5     	| 2x2 stride, same padding, outputs 9x40x48 	|
+| RELU					|												|
+| BatchNorm             |                                               |
+| Convolution 5x5     	| 1x1 stride, same padding, outputs 9x40x64  	|
+| RELU					|												|
+| BatchNorm             |                                               |
+| Convolution 5x5     	| 1x1 stride, same padding, outputs 9x40x64  	|
+| RELU					|												|
+| BatchNorm             |                                               |
+| Fully connected		| outputs 100  								    |
+| RELU					|												|
+| Fully connected		| outputs 50  								    |
+| RELU					|												|
+| Fully connected		| outputs 10  								    |
+| RELU					|												|
+| Fully connected		| prediction 1 (regression)  				    |
 
-The model contains dropout layers in order to reduce overfitting (model.py lines 21).
+Previously, I have also tried a version of LeNet and also VGG. However, LeNet model
+seems a bit too simple to predict correctly what the angle should be and I was getting
+quite high training and validation losses, whereas the VGG model, while it did well, doesn't
+seem to offer much advantage in terms of simulator performance over the simpler nvidia model.
+I chose the nvidia model as it is much smaller and is faster to train. As both the training and
+validation error on this is quite low, it shouldn't be overfitting. (and therefore like
+    in the paper, I didn't use any dropout layers)
 
-The model was trained and validated on different data sets to ensure that the model was not overfitting (code line 10-16). The model was tested by running it through the simulator and ensuring that the vehicle could stay on the track.
+It would be interesting to see if more complex structures, such as ResNet or InceptionNet would
+have better results to the current structure. However, a quick trial of a ResNet indicates that it would take
+a long time to train, and given that VGG with its deeper structure seems to offer no extra gains,
+I am leaving this experiment on the side for now.
 
-####3. Model parameter tuning
+A more interesting avenue to explore is to implement a CNN-LSTM model on the data-- since each subsequent steering
+angle is based on the previous few timesteps, it should offer better predictions than just using the image from the
+same timestep. Also interesting would be to implement a prediction for the speed and throttle as well as these
+are also related to the speed/environment in a real car, e.g. if you are driving round a turn you would slow down.
 
-The model used mse as the accurcay param and `model.compile(loss='mse', optimizer='adam')` so the learning rate was not tuned.
 
-###Model Architecture and Training Strategy
+#### Model parameters
 
-####1. Solution Design Approach
+The model used mean squared error as the metric an Adam optimizer (with default params). Learning rate tuning was not required as the Adam optimizer takes care of changing the rate of learning rate as the model trains.
 
-The overall strategy for deriving a model architecture was to ...
-
-My first step was to use a convolution neural network model similar to the ... I thought this model might be appropriate because ...
-
-In order to gauge how well the model was working, I split my image and steering angle data into a training and validation set. I found that my first model had a low mean squared error on the training set but a high mean squared error on the validation set. This implied that the model was overfitting.
-
-To combat the overfitting, I modified the model so that ...
-
-Then I ...
-
-The final step was to run the simulator to see how well the car was driving around track one. There were a few spots where the vehicle fell off the track... to improve the driving behavior in these cases, I ....
-
-At the end of the process, the vehicle is able to drive autonomously around the track without leaving the road.
-
-####2. Final Model Architecture
-
-The final model architecture (model.py lines 18-24) consisted of a convolution neural network with the following layers and layer sizes ...
 
 Here is a visualization of the architecture (note: visualizing the architecture is optional according to the project rubric)
 
 ![alt text][image1]
 
-####3. Creation of the Training Set & Training Process
+### Improvements
 
-To capture good driving behavior, I first recorded two laps on track one using center lane driving. Here is an example image of center lane driving:
+I would like to get the car to be able to generalise to drive on the second track-- unfortunately this is really hampered by
+the lack of training data due to my own not so great driving... might be interesting to explore whether generative adverserial
+techniques can be used to generate good driving data from the bad ones but at the moment I don't think I have seen a paper that
+ does similar task.
 
-![alt text][image2]
+ Try a Conv-LSTM on the training-- next iteraterion will likely include an investigation into this (due to time constraints I don't have time right at the moment for project deadline...)
 
-I then recorded the vehicle recovering from the left side and right sides of the road back to center so that the vehicle would learn to .... These images show what a recovery looks like starting from ... :
-
-![alt text][image3]
-![alt text][image4]
-![alt text][image5]
-
-Then I repeated this process on track two in order to get more data points.
-
-To augment the data sat, I also flipped images and angles thinking that this would ... For example, here is an image that has then been flipped:
-
-![alt text][image6]
-![alt text][image7]
-
-Etc ....
-
-After the collection process, I had X number of data points. I then preprocessed this data by ...
-
-
-I finally randomly shuffled the data set and put Y% of the data into a validation set.
-
-I used this training data for training the model. The validation set helped determine if the model was over or under fitting. The ideal number of epochs was Z as evidenced by ... I used an adam optimizer so that manually training the learning rate wasn't necessary.
+ Make the car drive better by predicting the speed as well as driving angle.

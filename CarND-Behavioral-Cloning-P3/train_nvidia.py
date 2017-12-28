@@ -16,8 +16,6 @@ from keras import backend as K
 from keras.preprocessing import image
 from keras.layers.normalization import BatchNormalization
 from keras.optimizers import Adam
-from keras.preprocessing.image import ImageDataGenerator
-from keras.regularizers import l2
 
 # logging callback for keras-- outputs validation and training losses per 2 episodes. This is mainly for
 # if using ipython notebooks since the verbose mode tends to crash the browser
@@ -47,6 +45,55 @@ train_samples, validation_samples = train_test_split(samples, test_size=0.1)
 # layer for removing the unecessary bits (sky etc)
 #  and a normalisation layer to limit the inputs to values that the activation functions work better on (mean 0, max 0.5, range 1)
 def nvidia_model(input_shape):
+    """
+    model structure as follows: using the same structure as the end to end learning for
+    self driving cars by Nvidia
+    _________________________________________________________________
+    Layer (type)                 Output Shape              Params
+    =================================================================
+    input_1 (InputLayer)         (None, 160, 320, 3)       0
+    _________________________________________________________________
+    cropping2d_1 (Cropping2D)    (None, 65, 320, 3)        0
+    _________________________________________________________________
+    lambda_1 (Lambda)            (None, 65, 320, 3)        0
+    _________________________________________________________________
+    set1_conv1 (Conv2D)          (None, 33, 160, 24)       1824
+    _________________________________________________________________
+    batch_normalization_1 (Batch (None, 33, 160, 24)       96
+    _________________________________________________________________
+    set2_conv1 (Conv2D)          (None, 17, 80, 36)        21636
+    _________________________________________________________________
+    batch_normalization_2 (Batch (None, 17, 80, 36)        144
+    _________________________________________________________________
+    set3_conv1 (Conv2D)          (None, 9, 40, 48)         43248
+    _________________________________________________________________
+    batch_normalization_3 (Batch (None, 9, 40, 48)         192
+    _________________________________________________________________
+    set4_conv1 (Conv2D)          (None, 9, 40, 64)         27712
+    _________________________________________________________________
+    batch_normalization_4 (Batch (None, 9, 40, 64)         256
+    _________________________________________________________________
+    set5_conv1 (Conv2D)          (None, 9, 40, 64)         36928
+    _________________________________________________________________
+    batch_normalization_5 (Batch (None, 9, 40, 64)         256
+    _________________________________________________________________
+    flatten_1 (Flatten)          (None, 23040)             0
+    _________________________________________________________________
+    fc1 (Dense)                  (None, 100)               2304100
+    _________________________________________________________________
+    fc2 (Dense)                  (None, 50)                5050
+    _________________________________________________________________
+    fc3 (Dense)                  (None, 10)                510
+    _________________________________________________________________
+    final (Dense)                (None, 1)                 11
+    =================================================================
+    Total params: 2,441,963
+    Trainable params: 2,441,491
+    Non-trainable params: 472
+    _________________________________________________________________
+
+    """
+
     inputs = Input(shape=input_shape)
     cropped = Cropping2D(cropping=((70, 25), (0, 0)))(inputs)
     processed = Lambda(lambda x: (x /255. - 0.5))(cropped)
@@ -72,6 +119,9 @@ def nvidia_model(input_shape):
     model = Model(inputs=inputs, outputs=predictions)
     return model
 
+# generator for producing training/validation data in batches so there is no need to hold all of
+#  the training data in memory-- given the sample size, the machine would actually run out of memory if I use
+# all three training datasets (sample driving data, my driving data, and the reverse driving)
 def img_generator(samples, batch_size=32, is_validation_generator = False):
     num_samples = len(samples)
     while 1: # Loop forever so the generator never terminates
