@@ -52,29 +52,7 @@ The following image shows the above 2 steps:
 
 ![image](https://github.com/wwymak/udacity-selfdrivingcar-nd/blob/master/CarND-Behavioral-Cloning-P3/examples/image_augmentation.png)
 
-### Relevant Files
-- train_nvidia.py (for training and saving model)
-- drive.py (for taking output from the model and sending it to the simulator)
-- video.py (converted images from the autonomous session into a video)
-- movie1_nvidia.mp4 (video of the car driving with the model)
-- models/nvidia_generator5.h5 (trained model)
-
-### Running the code
-- keras version 2.1.1 and tensorflow v.1.3 was used for training and running the model. If you are running the saved model
-with drive.py you will need to check that the keras version in your environment is 2.1.1
-- use `python train_nvidia.py` to train the model. This will save the model in the relative path `./models/nvidia_generator5.h5`
-(via the keras ModelCheckpoint option). Logs are saved to the `logs` directory so the training can be visualised in Tensorboard.
-- also make a directory called data and put the relevant training data in there-- if need be change the `data_file_paths` array in your own code
-- launch TensorBoard with `tensorboard --logdir=./logs` to monitor the training process
-
-- use `python drive.py ./nvidia_generator5.h5` to run the car in autonomous mode. Note- there _may_ be potential issues with
-running the model in your own machine (rather than the one the model is trained on) as Keras doesn't seem to be able to reload the
-Lambda layer correctly when the model is on a different machine (I trained the same model both with and without the Lambda layer on
-a cloud GPU instance and when trying to run them on my own local machine, the one without the Lambda layer loaded fine but the one with the layer gives an error-- there have been various discussions/issues on the keras repo around this, e.g. https://github.com/keras-team/keras/issues/6442. If I am productionising the code and model , I would definitely need to resolve this,
-but for this project, I train and run drive.py on the same cloud GPU instance, and use that to drive the simulator by forwarding my local port 4567 to the one on the remote machine)
-
-
-###Model Architecture and Training Strategy
+## Model Architecture and Training Strategy
 
 #### Architecture
 
@@ -133,18 +111,50 @@ are also related to the speed/environment in a real car, e.g. if you are driving
 
 The model used mean squared error as the metric an Adam optimizer (with default params). Learning rate tuning was not required as the Adam optimizer takes care of changing the rate of learning rate as the model trains.
 
+## Usage
+### Packages required
 
-Here is a visualization of the architecture (note: visualizing the architecture is optional according to the project rubric)
+The following packages outside the standard numpy/scipy/matplotlib were used: (the version shouldn't matter except for keras and TF)
 
-![alt text][image1]
+- Keras v2.1.1
+- Tensorflow v.1.3
+- opencv v3.2.0
+- sklearn v0.18
+
+### Relevant Files
+- train_nvidia.py (for training and saving model)
+- drive.py (for taking output from the model and sending it to the simulator)
+- video.py (converted images from the autonomous session into a video)
+- movie1_nvidia.mp4 (video of the car driving with the model)
+- models/nvidia_generator5.h5 (trained model)
+
+(the other files can be ignored-- these are rough notes, investigations that are works in progress, etc)
+
+### Running the code
+- keras version 2.1.1 and tensorflow v.1.3 was used for training and running the model. If you are running the saved model
+with drive.py you will need to check that the keras version in your environment is 2.1.1
+- use `python train_nvidia.py` to train the model. This will save the model in the relative path `./models/nvidia_generator5.h5`
+(via the keras ModelCheckpoint option). Logs are saved to the `logs` directory so the training can be visualised in Tensorboard.
+- also make a directory called data and put the relevant training data in there-- if need be change the `data_file_paths` array in your own code
+- launch TensorBoard with `tensorboard --logdir=./logs` to monitor the training process
+
+- use `python drive.py ./nvidia_generator5.h5` to run the car in autonomous mode. Note- there _may_ be potential issues with
+running the model in your own machine (rather than the one the model is trained on) as Keras doesn't seem to be able to reload the
+Lambda layer correctly when the model is on a different machine (I trained the same model both with and without the Lambda layer on
+a cloud GPU instance and when trying to run them on my own local machine, the one without the Lambda layer loaded fine but the one with the layer gives an error-- there have been various discussions/issues on the keras repo around this, e.g. https://github.com/keras-team/keras/issues/6442. If I am productionising the code and model , I would definitely need to resolve this,
+but for this project, I train and run drive.py on the same cloud GPU instance, and use that to drive the simulator by forwarding my local port 4567 to the one on the remote machine)
+
+
 
 ### Improvements
 
-I would like to get the car to be able to generalise to drive on the second track-- unfortunately this is really hampered by
+- I would like to get the car to be able to generalise to drive on the second track-- unfortunately this is really hampered by
 the lack of training data due to my own not so great driving... might be interesting to explore whether generative adverserial
 techniques can be used to generate good driving data from the bad ones but at the moment I don't think I have seen a paper that
  does similar task.
 
- Try a Conv-LSTM on the training-- next iteraterion will likely include an investigation into this (due to time constraints I don't have time right at the moment for project deadline...)
+ - Try a Conv-LSTM on the training-- next iteraterion will likely include an investigation into this (due to time constraints I don't have time right at the moment for project deadline...)
 
- Make the car drive better by predicting the speed as well as driving angle.
+ - Make the car drive better by predicting the speed as well as driving angle.
+
+ - layer visualisations of the model-- haven't managed to get the layer visualisations to show meaningful results as yet.

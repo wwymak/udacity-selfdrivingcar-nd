@@ -27,9 +27,10 @@ logging_callback = LambdaCallback(on_epoch_end=logger)
 
 # get list of images to use-- each folder is one training set
 
-# data_reverse is driving in the oppositie direction
+# data_reverse is driving in the oppositie direction, data2 is my own data, and data_sample is the training data provided
 data_file_paths = ['data2/', 'data_sample/','data_reverse/']
 samples = []
+# read in all the image paths, and use sklearn to split them into training and validation data (using the default shuffle== True)
 for folder in data_file_paths:
     temp = []
     with open(folder + 'driving_log.csv') as f:
@@ -98,7 +99,7 @@ def nvidia_model(input_shape):
     inputs = Input(shape=input_shape)
     cropped = Cropping2D(cropping=((70, 25), (0, 0)))(inputs)
     processed = Lambda(lambda x: (x /255. - 0.5))(cropped)
-
+    # 5 convolution blocks, with Relu activation and batch normalisation
     block1 = Conv2D(24, kernel_size=5,strides=(2,2), activation='relu', padding='same', name='set1_conv1')(processed)
     block1 = BatchNormalization()(block1)
     block2 = Conv2D(36, kernel_size=5,strides=(2,2), activation='relu', padding='same', name='set2_conv1')(block1)
@@ -111,11 +112,11 @@ def nvidia_model(input_shape):
     block5 = BatchNormalization()(block5)
 
     flat1 = Flatten()(block5)
-
+    # 3 fully connected blocks
     fcblock = Dense(100, activation='relu', name='fc1')(flat1)
     fcblock = Dense(50, activation='relu', name='fc2')(fcblock)
     fcblock = Dense(10, activation='relu' , name='fc3')(fcblock)
-
+    # 1 output : this is the steering angle
     predictions = Dense(1, name='final')(fcblock)
     model = Model(inputs=inputs, outputs=predictions)
     return model
@@ -143,15 +144,11 @@ def img_generator(samples, batch_size=32, is_validation_generator = False):
                 images.append(np.fliplr(center_image))
                 angles.append(steering_angle * - 1.0)
 
+                # the validation data shouldn't have the extra left/ right or the reversed images as
+                # at testing time only data from central camera is used
                 if (is_validation_generator == False and batch_sample[1].split('/')[0] != 'data_recovery') :
                     left_image = cv2.imread(batch_sample[1])
                     right_image = cv2.imread(batch_sample[2])
-
-                    # images.append(cv2.cvtColor(left_image, cv2.COLOR_BGR2RGB))
-                    # angles.append(steering_angle + 0.01 * steering_angle)
-                    #
-                    # images.append(cv2.cvtColor(right_image, cv2.COLOR_BGR2RGB))
-                    # angles.append(steering_angle - 0.005 * steering_angle)
 
 
                     if batch_sample[1].split('/')[0] == 'data_reverse':
@@ -172,17 +169,21 @@ def img_generator(samples, batch_size=32, is_validation_generator = False):
             y_train = np.array(angles)
             yield sklearn.utils.shuffle(X_train, y_train)
 
+# training params. the K.clear_session() is used to remove any stale models from the GPU so it doesn't run out of memory
 K.clear_session()
-train_batch_size = 8
+train_batch_size = 8 #use a smaller training batch size since 1 input image turns into 4 by the generator
 val_batch_size = 32
 epochs = 30
+# defined the model
 model = nvidia_model((160, 320, 3))
+# and the source data generators
 train_generator = img_generator(train_samples, batch_size=train_batch_size)
 validation_generator = img_generator(validation_samples, batch_size=val_batch_size, is_validation_generator = True)
 
+# set up the model to use mean squared error as loss function and Adam optimisation
 model.compile(loss='mse', optimizer='adam')
 
-
+# train model, fit to data
 model.fit_generator(train_generator, steps_per_epoch=len(train_samples)//train_batch_size, validation_data=validation_generator,
             validation_steps=len(validation_samples)/val_batch_size, epochs=epochs, shuffle=True,
                    callbacks=[logging_callback, ModelCheckpoint('./models/nvidia_generator5.h5', save_best_only=True),
