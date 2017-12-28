@@ -49,7 +49,7 @@ works similar to the 'recovery' images and is a lot easier to obtain. (see comme
 manually going through the images and throwing out the bad ones, I decided to only use the other training data instead.
 
 The following image shows the above 2 steps:
-![](https://github.com/wwymak/udacity-selfdrivingcar-nd/tree/master/CarND-Behavioral-Cloning-P3/examples/image_augmentation.jpg)
+![image](https://github.com/wwymak/udacity-selfdrivingcar-nd/tree/master/CarND-Behavioral-Cloning-P3/examples/image_augmentation.png)
 
 ### Relevant Files
 - train_nvidia.py (for training and saving model)
