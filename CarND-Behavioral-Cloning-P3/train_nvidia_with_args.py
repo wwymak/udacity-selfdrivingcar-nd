@@ -1,12 +1,14 @@
 # imports packages needed in the script
-import keras
 import numpy as np
 import pandas as pd
 import cv2
 import csv
+
 import sklearn
 from sklearn.model_selection import train_test_split
 from sklearn.utils import shuffle
+
+import keras
 from keras.models import Sequential, Model,load_model
 from keras.layers import Dense, Activation, Flatten, Dropout, Conv2D, MaxPooling2D, AveragePooling2D, concatenate, Input, Lambda, Cropping2D
 from keras import utils
@@ -18,6 +20,18 @@ from keras.preprocessing import image
 from keras.layers.normalization import BatchNormalization
 from keras.optimizers import Adam
 
+import argparse
+parser = argparse.ArgumentParser()
+parser.add_argument("--modelname", help="name to save the model with",type=str, default='model.h5')
+parser.add_argument("--logdir", help="directory to save tensorboard training logs to",type=str, default = 'logs')
+parser.add_argument('--datapaths', nargs='+', help='Path to your training data folders', required=True)
+
+args = parser.parse_args()
+logs_dir = parser.logdir
+model_path = './models/' + parser.modelname
+data_file_paths = parser.datapaths.split(" ")
+
+
 # logging callback for keras-- outputs validation and training losses per 2 episodes. This is mainly for
 # if using ipython notebooks since the verbose mode tends to crash the browser
 def logger(epoch, logs):
@@ -28,7 +42,7 @@ logging_callback = LambdaCallback(on_epoch_end=logger)
 # get list of images to use-- each folder is one training set
 
 # data_reverse is driving in the oppositie direction
-data_file_paths = ['data2/', 'data_sample/','data_reverse/']
+# data_file_paths = ['data2/', 'data_sample/','data_reverse/']
 samples = []
 for folder in data_file_paths:
     temp = []
@@ -186,4 +200,4 @@ model.compile(loss='mse', optimizer='adam')
 model.fit_generator(train_generator, steps_per_epoch=len(train_samples)//train_batch_size, validation_data=validation_generator,
             validation_steps=len(validation_samples)/val_batch_size, epochs=epochs, shuffle=True,
                    callbacks=[logging_callback, ModelCheckpoint('./models/nvidia_generator5.h5', save_best_only=True),
-                   TensorBoard(log_dir='./logs/nvidia/generator5' )])
+                   TensorBoard(log_dir=logs_dir )])

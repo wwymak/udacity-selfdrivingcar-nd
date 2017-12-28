@@ -35,7 +35,6 @@ the actual simulator myself.
 - Flip images: to reduce the chance of the model overfitting on left steering or right steering, I also flipped the images and the
 steering angles so the car can learn to navigate turns better.
 
-- reverse driving. Similar to the above, I also collected data of the car driving the wrong way round on the track to correct for any left hand turn biases.
 
 - add in left and right steering images -- these help in predicting when the car should turn left/right according
 to the road. In the view from the left camera, the steering angle should be less to the left if the image is taken from the
@@ -43,14 +42,14 @@ central camera, and in the view from the right camera, the steering angle should
 central camera. The extra data from these cameras help in guiding the model to steer the car more towards the centre. This technique
 works similar to the 'recovery' images and is a lot easier to obtain. (see comment about recovery images below)
 
+
+- reverse driving. Similar to the above, I also collected data of the car driving the wrong way round on the track to correct for any left hand turn biases.
+
 - recovery images-- ideally, when the car drive away from the centre of the track, it should learn to go back towards the centre, and to do this, 'recovery' data might be needed, where the model sees images of the sides being too close and it has to fit a higher recovery angle.  However, I tried adding some recovery data to the training set and the car performed worse, not better with the model trained on them. Perhaps, this is due to the quality of the images not being very good (some of the recovery data has a bit of driving towards the sides mixed in). I found the model did well enough without this extra data so rather than spending a lot of time
 manually going through the images and throwing out the bad ones, I decided to only use the other training data instead.
 
-[//]: # (Image References)
-
-[image1]: ./examples/placeholder.png "Model Visualization"
-[image6]: ./examples/placeholder_small.png "Normal Image"
-[image7]: ./examples/placeholder_small.png "Flipped Image"
+The following image shows the above 2 steps:
+[image1]: https://github.com/wwymak/udacity-selfdrivingcar-nd/tree/master/CarND-Behavioral-Cloning-P3/examples/image_augmentation.jpg 
 
 ### Relevant Files
 - train_nvidia.py (for training and saving model)
