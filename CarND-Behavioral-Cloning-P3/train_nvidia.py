@@ -98,6 +98,7 @@ def nvidia_model(input_shape):
 
     inputs = Input(shape=input_shape)
     cropped = Cropping2D(cropping=((70, 25), (0, 0)))(inputs)
+    # normalisation layer to cap the max input value to mean zero and range 1
     processed = Lambda(lambda x: (x /255. - 0.5))(cropped)
     # 5 convolution blocks, with Relu activation and batch normalisation
     block1 = Conv2D(24, kernel_size=5,strides=(2,2), activation='relu', padding='same', name='set1_conv1')(processed)
@@ -116,7 +117,8 @@ def nvidia_model(input_shape):
     fcblock = Dense(100, activation='relu', name='fc1')(flat1)
     fcblock = Dense(50, activation='relu', name='fc2')(fcblock)
     fcblock = Dense(10, activation='relu' , name='fc3')(fcblock)
-    # 1 output : this is the steering angle
+    # 1 output : this is the steering angle, activation=None in this layer since it is predicting a range of values
+    # ie regression, rather than fixed classes
     predictions = Dense(1, name='final')(fcblock)
     model = Model(inputs=inputs, outputs=predictions)
     return model

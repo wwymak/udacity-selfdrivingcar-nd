@@ -24,9 +24,11 @@ However, no grayscaling is used as the road is not of one consistent texture, an
 using all 3 color channels can in fact help the network to learn.
 
 
-- converting to the right colorscale: in the image processing pipeline, I am using `cv2.imread` to convert images to numpy arrays. This reads in images in the BGR order whereas in the drive.py file, the images are read in using the `Image` function from Pillow, which is in the RGB order.
+- converting to the right colorscale: in the image processing pipeline, I am using `cv2.imread` to convert images to numpy arrays. This reads in images in the BGR order whereas in the drive.py file, the images are read in using the `Image` function from Pillow, which is in the RGB order. To ensure that the prediction runs on the rigt color channels, I converted all the input images to RGB format before passing to the network
 
-- image normalisation
+- image normalisation: all the images arrays are scaled to have a max of 0.5 and min -0.5. This is to ensure that as the model
+trains, the network sees a consistent data range and it would help it to find the optimal weights better. Also, it would reduce the
+chance of values/gradients 'exploding' due to very high values.  
 
 - Image cropping-- only the bottom part of the image corresponding to the road is important for the model
 to determine the steering angle, so as part of the keras model, there is a cropping layer that crops the image height
@@ -62,7 +64,7 @@ The following image shows the above 2 steps:
 
 #### Architecture
 
-The final model structure (based on that reported from Nvidia, with the extra batchnorm layers added)
+The final model structure (based on that reported from [Nvidia](https://devblogs.nvidia.com/parallelforall/deep-learning-self-driving-cars/), with the extra batchnorm layers added)
 is as follows:
 
 
@@ -124,7 +126,10 @@ The following image illustrates the training loss/ validation loss:
 
 #### Train/validation data
 After reading in all the image paths and corresponding steering angles, I used the `train_test_split` function from sklearn
-to shuffle the training data and to hold back 10% as the validation data. (There are enough images from the 3 datasets that 10% validation data should be sufficient and it would benefit the network from having extra training data)
+to shuffle the training data and to hold back 10% as the validation data. (There are enough images from the 3 datasets that 10% validation data should be sufficient and it would benefit the network from having extra training data). I didn't use testing data
+in this project as the ultimate test of whether the model is successful or not is whether the car can stay on the track, and given
+that not all image-steering angle pair has the most optimal steering angle for that image, even a very low test error might
+not be the most useful metric to have.
 
 ## Usage
 ### Packages required
@@ -141,7 +146,8 @@ The following packages outside the standard numpy/scipy/matplotlib were used: (t
 - drive.py (for taking output from the model and sending it to the simulator)
 - video.py (converted images from the autonomous session into a video)
 - movie1_nvidia.mp4 (video of the car driving with the model)
-- models/nvidia_generator5.h5 (trained model)
+- nvidia_generator5.h5 (trained model)
+- run1_nvidia (folder containing the output images when driving in autonomous mode)
 
 (the other files can be ignored-- these are rough notes, investigations that are works in progress, etc)
 
@@ -157,7 +163,8 @@ with drive.py you will need to check that the keras version in your environment 
 running the model in your own machine (rather than the one the model is trained on) as Keras doesn't seem to be able to reload the
 Lambda layer correctly when the model is on a different machine (I trained the same model both with and without the Lambda layer on
 a cloud GPU instance and when trying to run them on my own local machine, the one without the Lambda layer loaded fine but the one with the layer gives an error-- there have been various discussions/issues on the keras repo around this, e.g. https://github.com/keras-team/keras/issues/6442. If I am productionising the code and model , I would definitely need to resolve this,
-but for this project, I train and run drive.py on the same cloud GPU instance, and use that to drive the simulator by forwarding my local port 4567 to the one on the remote machine)
+but for this project, I train and run drive.py on the same cloud GPU instance, and use that to drive the simulator by forwarding my local port 4567 to the one on the remote machine). However, the Lambda layer is really useful in ensuring that the input images
+at prediction time also undergoes normalisation so I am keeping it here for now.
 
 
 
