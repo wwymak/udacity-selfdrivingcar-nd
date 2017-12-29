@@ -12,6 +12,12 @@ Ideally, to help the car to generalise better, I would need to drive it through 
 training data on 1 track of the simulator as I find it very hard to drive the car on track 2, and rather than make the car drive
 worse due to bad driving data, I only used data from track1.
 
+The training data I used can be downloaded at:
+- centre lane driving from my own driving on simulator: https://storage.cloud.google.com/udacity-sdcnd-misc/data2.zip
+- centre lane driving from data sample: https://d17h27t6h515a5.cloudfront.net/topher/2016/December/584f6edd_data/data.zip
+- reverse driving on simulator: https://storage.googleapis.com/udacity-sdcnd-misc/data_reverse.zip
+
+
 #### Image preprocessing
 - No grayscaling: in previous project around lane detection, images are grayscaled for further computer vision algorithms to process.
 However, no grayscaling is used as the road is not of one consistent texture, and nor are there 'standard' lane lines. I believe that

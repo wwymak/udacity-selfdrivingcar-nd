@@ -1,4 +1,5 @@
 data
 .DS_Store
 *.zip
-models/*.h5
+models
+train_nvidia_with_speed.py
