@@ -154,6 +154,7 @@ The following packages outside the standard numpy/scipy/matplotlib were used: (t
 - movie1_nvidia.mp4 (video of the car driving with the model)
 - nvidia_generator5.h5 (trained model)
 - run1_nvidia (folder containing the output images when driving in autonomous mode)
+- nvidia_generator5_weights.h5 (model weights for the trained model)
 
 (the other files can be ignored-- these are rough notes, investigations that are works in progress, etc)
 
