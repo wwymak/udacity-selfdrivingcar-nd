@@ -109,7 +109,16 @@ are also related to the speed/environment in a real car, e.g. if you are driving
 
 #### Model parameters
 
-The model used mean squared error as the metric an Adam optimizer (with default params). Learning rate tuning was not required as the Adam optimizer takes care of changing the rate of learning rate as the model trains.
+The model used mean squared error as the metric an Adam optimizer (with default params). Learning rate tuning was not required as the Adam optimizer takes care of changing the rate of learning rate as the model trains. I used 30 epochs, with a ModelCheckpoint callback
+to save the model weights at each epoch if the training loss is lower. By the end, it wasn't decreasing much so I didn't continue on training.
+
+The following image illustrates the training loss/ validation loss:
+![image](https://github.com/wwymak/udacity-selfdrivingcar-nd/blob/master/CarND-Behavioral-Cloning-P3/examples/nvidia_model_training_log.png)
+
+
+#### Train/validation data
+After reading in all the image paths and corresponding steering angles, I used the `train_test_split` function from sklearn
+to shuffle the training data and to hold back 10% as the validation data. (There are enough images from the 3 datasets that 10% validation data should be sufficient and it would benefit the network from having extra training data)
 
 ## Usage
 ### Packages required

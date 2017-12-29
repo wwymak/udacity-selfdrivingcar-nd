@@ -25,12 +25,10 @@ parser = argparse.ArgumentParser()
 parser.add_argument("--modelname", help="name to save the model with",type=str, default='model.h5')
 parser.add_argument("--logdir", help="directory to save tensorboard training logs to",type=str, default = 'logs')
 parser.add_argument('--datapaths', nargs='+', help='Path to your training data folders', required=True)
-
 args = parser.parse_args()
-logs_dir = parser.logdir
-model_path = './models/' + parser.modelname
+logs_dir = args.logdir
+model_path = './models/' + args.modelname
 data_file_paths = parser.datapaths.split(" ")
-
 
 # logging callback for keras-- outputs validation and training losses per 2 episodes. This is mainly for
 # if using ipython notebooks since the verbose mode tends to crash the browser
@@ -41,7 +39,8 @@ logging_callback = LambdaCallback(on_epoch_end=logger)
 
 # get list of images to use-- each folder is one training set
 
-# data_reverse is driving in the oppositie direction
+# The following are the paths I used--
+# data_reverse is driving in the oppositie direction, data2 is my own data, and data_sample is the training data provided
 # data_file_paths = ['data2/', 'data_sample/','data_reverse/']
 samples = []
 for folder in data_file_paths:
@@ -112,7 +111,7 @@ def nvidia_model(input_shape):
     inputs = Input(shape=input_shape)
     cropped = Cropping2D(cropping=((70, 25), (0, 0)))(inputs)
     processed = Lambda(lambda x: (x /255. - 0.5))(cropped)
-
+    # 5 convolution blocks, with Relu activation and batch normalisation
     block1 = Conv2D(24, kernel_size=5,strides=(2,2), activation='relu', padding='same', name='set1_conv1')(processed)
     block1 = BatchNormalization()(block1)
     block2 = Conv2D(36, kernel_size=5,strides=(2,2), activation='relu', padding='same', name='set2_conv1')(block1)
@@ -125,7 +124,7 @@ def nvidia_model(input_shape):
     block5 = BatchNormalization()(block5)
 
     flat1 = Flatten()(block5)
-
+    # 3 fully connected blocks
     fcblock = Dense(100, activation='relu', name='fc1')(flat1)
     fcblock = Dense(50, activation='relu', name='fc2')(fcblock)
     fcblock = Dense(10, activation='relu' , name='fc3')(fcblock)
@@ -140,7 +139,6 @@ def nvidia_model(input_shape):
 def img_generator(samples, batch_size=32, is_validation_generator = False):
     num_samples = len(samples)
     while 1: # Loop forever so the generator never terminates
-        # shuffle(samples)
         for offset in range(0, num_samples, batch_size):
             batch_samples = samples[offset:offset+batch_size]
 
@@ -161,13 +159,8 @@ def img_generator(samples, batch_size=32, is_validation_generator = False):
                     left_image = cv2.imread(batch_sample[1])
                     right_image = cv2.imread(batch_sample[2])
 
-                    # images.append(cv2.cvtColor(left_image, cv2.COLOR_BGR2RGB))
-                    # angles.append(steering_angle + 0.01 * steering_angle)
-                    #
-                    # images.append(cv2.cvtColor(right_image, cv2.COLOR_BGR2RGB))
-                    # angles.append(steering_angle - 0.005 * steering_angle)
-
-
+                    # the validation data shouldn't have the extra left/ right or the reversed images as
+                    # at testing time only data from central camera is used
                     if batch_sample[1].split('/')[0] == 'data_reverse':
                         images.append(cv2.cvtColor(left_image, cv2.COLOR_BGR2RGB))
                         angles.append(steering_angle + 0.005 * steering_angle)
@@ -185,19 +178,21 @@ def img_generator(samples, batch_size=32, is_validation_generator = False):
             X_train = np.array(images)
             y_train = np.array(angles)
             yield sklearn.utils.shuffle(X_train, y_train)
-
+# training params. the K.clear_session() is used to remove any stale models from the GPU so it doesn't run out of memory
 K.clear_session()
 train_batch_size = 8
 val_batch_size = 32
 epochs = 30
+# defined the model
 model = nvidia_model((160, 320, 3))
+# and the source data generators
 train_generator = img_generator(train_samples, batch_size=train_batch_size)
 validation_generator = img_generator(validation_samples, batch_size=val_batch_size, is_validation_generator = True)
-
+# set up the model to use mean squared error as loss function and Adam optimisation
 model.compile(loss='mse', optimizer='adam')
 
-
+# train model, fit to data
 model.fit_generator(train_generator, steps_per_epoch=len(train_samples)//train_batch_size, validation_data=validation_generator,
             validation_steps=len(validation_samples)/val_batch_size, epochs=epochs, shuffle=True,
-                   callbacks=[logging_callback, ModelCheckpoint('./models/nvidia_generator5.h5', save_best_only=True),
+                   callbacks=[logging_callback, ModelCheckpoint(model_path, save_best_only=True),
                    TensorBoard(log_dir=logs_dir )])
