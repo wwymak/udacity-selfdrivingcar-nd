@@ -33,6 +33,7 @@ chance of values/gradients 'exploding' due to very high values.
 - Image cropping-- only the bottom part of the image corresponding to the road is important for the model
 to determine the steering angle, so as part of the keras model, there is a cropping layer that crops the image height
 from 160px to 65px, removing 70px from the top (where the sky is) and 25px from the bottom (where the front of the car is). This makes the model quicker to train and require less memory. Also, by cropping out the irrelvant parts of the image, it can prevent the model from training on the wrong features. (e.g. it shouldn't predict steering angles based on whether it can see trees on not.)
+![image](https://github.com/wwymak/udacity-selfdrivingcar-nd/blob/master/CarND-Behavioral-Cloning-P3/examples/cropped.jpg)
 
 #### Data augmentation
 
@@ -41,22 +42,24 @@ with the model performance, especially as I am not that good at
 the actual simulator myself.
 
 - Flip images: to reduce the chance of the model overfitting on left steering or right steering, I also flipped the images and the
-steering angles so the car can learn to navigate turns better.
+steering angles so the car can learn to navigate turns better. (In track one, the car turns left most of the time so there
+    is a high risk that the model will overfit left turns and try to make the car go left even when it should go straight)
 
+- reverse driving. Similar to the above, I also collected data of the car driving the wrong way round on the track to correct for any  turning biases.
 
 - add in left and right steering images -- these help in predicting when the car should turn left/right according
-to the road. In the view from the left camera, the steering angle should be less to the left if the image is taken from the
-central camera, and in the view from the right camera, the steering angle should more more to the left if the image is from the
+to the road. In the view from the left camera, the steering angle should be less to the left compared to the case where the image is taken from the
+central camera, and in the view from the right camera, the steering angle should more more to the left compared to the image from the
 central camera. The extra data from these cameras help in guiding the model to steer the car more towards the centre. This technique
 works similar to the 'recovery' images and is a lot easier to obtain. (see comment about recovery images below)
 
 
-- reverse driving. Similar to the above, I also collected data of the car driving the wrong way round on the track to correct for any left hand turn biases.
+
 
 - recovery images-- ideally, when the car drive away from the centre of the track, it should learn to go back towards the centre, and to do this, 'recovery' data might be needed, where the model sees images of the sides being too close and it has to fit a higher recovery angle.  However, I tried adding some recovery data to the training set and the car performed worse, not better with the model trained on them. Perhaps, this is due to the quality of the images not being very good (some of the recovery data has a bit of driving towards the sides mixed in). I found the model did well enough without this extra data so rather than spending a lot of time
 manually going through the images and throwing out the bad ones, I decided to only use the other training data instead.
 
-The following image shows the above 2 steps:
+The following image shows the above steps:
 
 ![image](https://github.com/wwymak/udacity-selfdrivingcar-nd/blob/master/CarND-Behavioral-Cloning-P3/examples/image_augmentation.png)
 
