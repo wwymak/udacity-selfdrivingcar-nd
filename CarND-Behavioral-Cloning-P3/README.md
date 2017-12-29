@@ -33,6 +33,9 @@ chance of values/gradients 'exploding' due to very high values.
 - Image cropping-- only the bottom part of the image corresponding to the road is important for the model
 to determine the steering angle, so as part of the keras model, there is a cropping layer that crops the image height
 from 160px to 65px, removing 70px from the top (where the sky is) and 25px from the bottom (where the front of the car is). This makes the model quicker to train and require less memory. Also, by cropping out the irrelvant parts of the image, it can prevent the model from training on the wrong features. (e.g. it shouldn't predict steering angles based on whether it can see trees on not.)
+
+The following image illustrates this:
+
 ![image](https://github.com/wwymak/udacity-selfdrivingcar-nd/blob/master/CarND-Behavioral-Cloning-P3/examples/cropped.jpg)
 
 #### Data augmentation
