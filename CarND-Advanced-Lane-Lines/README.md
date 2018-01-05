@@ -7,15 +7,16 @@ developed from this task can then be adapted for self driving cars to ensure it 
 
 #### Detection steps:
 1. calibrate the camera
-2. correct images from the camera according to the calibration
-3. Apply thresholding with color and gradient transforms to isolate lane lines
-4. Transform to birds eye view, detect lines and fit to polynomial, calculate radius of curvature
-5. Transform lane lines to original viewpoint and draw lines on image
-6. Output image as part of video processing pipeline
+2. Clean images with Gaussian blur`cv2.GaussianBlur` and also enhance contrast with histogram equalisation `cv2.createCLAHE`
+3. correct images from the camera according to the calibration
+4. Apply thresholding with color and gradient transforms to isolate lane lines
+5. Transform to birds eye view, detect lines and fit to polynomial, calculate radius of curvature
+6. Transform lane lines to original viewpoint and draw lines on image
+7. Output image as part of video processing pipeline
 
 ---
 
-### Camera Calibration
+#### Camera Calibration
 
 The camera caibration is done with a set of chessboard images. These images have 9 x 6 chessboard grids-- the grid points
 are used as object points, whereas the actual points of these corners (ie image points) in the images are found with the `cv2.findChessboardCorners()`  function. If the image points are found successfully in a calibration image, these points are
@@ -30,6 +31,22 @@ Uncorrected                |  Corrected                |
 :-------------------------:|:-------------------------:|
 ![](https://github.com/wwymak/udacity-selfdrivingcar-nd/blob/master/CarND-Advanced-Lane-Lines/test_images/test1.jpg)  |  ![](https://github.com/wwymak/udacity-selfdrivingcar-nd/blob/master/CarND-Advanced-Lane-Lines/output_images/test1_camera_corrected.jpg)|![](https://github.com/wwymak/udacity-selfdrivingcar-nd/blob/master/CarND-Advanced-Lane-Lines/camera_cal/calibration1.jpg)  |
 ![](https://github.com/wwymak/udacity-selfdrivingcar-nd/blob/master/CarND-Advanced-Lane-Lines/output_images/calibration1.jpg)|
+
+Other examples of correct chessboard images are in `https://github.com/wwymak/udacity-selfdrivingcar-nd/blob/master/CarND-Advanced-Lane-Lines/output_images/calibration*.jpg` and
+examples of the test images after undistortion are in `https://github.com/wwymak/udacity-selfdrivingcar-nd/blob/master/CarND-Advanced-Lane-Lines/output_images/test*.jpg`
+
+#### Image denoising/enhancing
+An example of this step is shown below:
+
+![](https://github.com/wwymak/udacity-selfdrivingcar-nd/blob/master/CarND-Advanced-Lane-Lines/output_images/image_cleaning.png)
+
+#### Thresholding investigations
+
+**Color Thresholding**
+
+**Gradient Thresholding**
+
+
 
 ### Pipeline (single images)
 
