@@ -27,9 +27,9 @@ Image correction is carried out with the `cv2.undistort()` function.
 E.g.
 
 Uncorrected                |  Corrected                |
-|:-------------------------:|:-------------------------:|
-|![](https://github.com/wwymak/udacity-selfdrivingcar-nd/blob/master/CarND-Advanced-Lane-Lines/test_images/test1.jpg)  |  |![](https://github.com/wwymak/udacity-selfdrivingcar-nd/blob/master/CarND-Advanced-Lane-Lines/output_images/test1_camera_corrected.jpg)|![](https://github.com/wwymak/udacity-selfdrivingcar-nd/blob/master/CarND-Advanced-Lane-Lines/camera_cal/calibration1.jpg)  |
-|![](https://github.com/wwymak/udacity-selfdrivingcar-nd/blob/master/CarND-Advanced-Lane-Lines/output_images/calibration1.jpg)|
+:-------------------------:|:-------------------------:|
+![](https://github.com/wwymak/udacity-selfdrivingcar-nd/blob/master/CarND-Advanced-Lane-Lines/test_images/test1.jpg)  |  ![](https://github.com/wwymak/udacity-selfdrivingcar-nd/blob/master/CarND-Advanced-Lane-Lines/output_images/test1_camera_corrected.jpg)|![](https://github.com/wwymak/udacity-selfdrivingcar-nd/blob/master/CarND-Advanced-Lane-Lines/camera_cal/calibration1.jpg)  |
+![](https://github.com/wwymak/udacity-selfdrivingcar-nd/blob/master/CarND-Advanced-Lane-Lines/output_images/calibration1.jpg)|
 
 ### Pipeline (single images)
 
