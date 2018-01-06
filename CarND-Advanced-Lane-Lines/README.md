@@ -49,7 +49,14 @@ the color thresholding on it's own doesn't isolate the lane lines very well
 
 ![](https://github.com/wwymak/udacity-selfdrivingcar-nd/blob/master/CarND-Advanced-Lane-Lines/output_images/color_thresholding_example_all.jpg)
 
+
+_Combining HLS and RGB thresholding:_
+
+After experimenting with thresholding either the S channel of the image in HLS color space and the R channel in RGB color space,
+I also tried combining them, which seems to give the best result.
+
 **Gradient Thresholding**
+
 To highlight lane lines, I also apply gradient thresholding with the Sobel operators (using `cv2.Sobel`, which takes the gradient of
     an image in either the x or the y direction). The three thresholds I used in combination was
 - magnitude thresholding
@@ -60,6 +67,38 @@ The result of the thresholding can be seen below:
 
 ![](https://github.com/wwymak/udacity-selfdrivingcar-nd/blob/master/CarND-Advanced-Lane-Lines/output_images/sobel_thresholding_in_action.png)
 
+**Thresholding-- combination**
+
+To take advantage of both the gradient and color thresholding, I combined the result of applying the color thresholding Pipeline
+and the gradient thresholding pipeline such that the image pixel is 1 if either the color or the gradient threshold returns 1, and zero otherwise:
+```
+def combined_thresholding(sobel_bin, color_binary):   
+    combined = np.zeros_like(sobel_bin)
+    combined[(sobel_bin == 1) | (color_binary == 1)] = 1
+    return combined
+```
+
+The parameters I found to be the best for the thresholding pipeline are:
+
+| Param        | Threshold   |
+|:-------------:|:----------:|
+| sobel kernel size | (3,3)    |
+| sobel_x       | (15,90)      |
+| sobel_y       | (20, 90)     |
+| sobel magitude | 960, 720    |
+| sobel direction| 960, 720    |
+| HLS threshold     |(70,255)        |
+| RGB threshold     |(150,255)        |
+
+
+#### Warp perspective
+After thresholding the image to enhance the lane lines, the perspective is warped so it seems the lines are viewed from above.
+This enables a polynomial to be fitted to the lines. The perspective warping calibration is done by calling `cv2.getPerspectiveTransform`.
+
+![](https://github.com/wwymak/udacity-selfdrivingcar-nd/blob/master/CarND-Advanced-Lane-Lines/output_images/perspective_transform1.png)![](https://github.com/wwymak/udacity-selfdrivingcar-nd/blob/master/CarND-Advanced-Lane-Lines/output_images/perspective_transform2.png)
+
+on an image with straight lane lines, finding the source points on that image, then the destination points in a topview image, and
+calcuating the transformation matrices between them
 ### Pipeline (single images)
 
 #### 1. Provide an example of a distortion-corrected image.
@@ -131,16 +170,18 @@ use the previous value instead (unless it's the first image)
 * if the radius of curvature of the left line is less than half that of the right (or the right curvature less than half
     that of the left), reject the detection
 
-The final output video is [here](https://github.com/wwymak/udacity-selfdrivingcar-nd/blob/master/CarND-Advanced-Lane-Lines/project_video_out_pipeplinev3all.mp4)
+The final output video is [here](https://github.com/wwymak/udacity-selfdrivingcar-nd/blob/master/CarND-Advanced-Lane-Lines/project_video_out_pipeplinev3.mp4)
 
 ---
 
-### Discussion
-
-#### 1. Briefly discuss any problems / issues you faced in your implementation of this project.  Where will your pipeline likely fail?  What could you do to make it more robust?
-
-Here I'll talk about the approach I took, what techniques I used, what worked and why, where the pipeline might fail and how I might improve it if I were going to pursue this project further.
 
 ### Usage/running the code:
 - The relevant analysis are all in the [Lane Lines Project.ipynb](https://github.com/wwymak/udacity-selfdrivingcar-nd/blob/master/CarND-Advanced-Lane-Lines/Lane%20Lines%20Project.ipynb) file
 -  
+
+### Further investigations
+- improve pipeline to work on the challenge videos-- these are the ones with a lot more light and shadow (as well as a less evenly
+    colored road surface) as compared to the project video
+at the moment, it sort of works on the challenge_video but the
+pipeline does have a tendency to detect the edges of the road as the left lane line. Potentially tuning the thresholding params
+could help.
