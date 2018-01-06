@@ -35,10 +35,14 @@ Uncorrected                |  Corrected                |
 Other examples of correct chessboard images are in `https://github.com/wwymak/udacity-selfdrivingcar-nd/blob/master/CarND-Advanced-Lane-Lines/output_images/calibration*.jpg` and
 examples of the test images after undistortion are in `https://github.com/wwymak/udacity-selfdrivingcar-nd/blob/master/CarND-Advanced-Lane-Lines/output_images/test*.jpg`
 
+---
+
 #### Image denoising/enhancing
 An example of this step is shown below:
 
 ![](https://github.com/wwymak/udacity-selfdrivingcar-nd/blob/master/CarND-Advanced-Lane-Lines/output_images/image_cleaning.png)
+
+---
 
 #### Thresholding investigations
 
@@ -59,7 +63,7 @@ I also tried combining them, which seems to give the best result.
 
 To highlight lane lines, I also apply gradient thresholding with the Sobel operators (using `cv2.Sobel`, which takes the gradient of
     an image in either the x or the y direction). The three thresholds I used in combination was
-- magnitude thresholding
+- magnitude thresholding (ie )
 - direction thresholding
 - value thresholding in both x and y directions
 
@@ -94,23 +98,36 @@ The parameters I found to be the best for the thresholding pipeline are:
 #### Warp perspective
 After thresholding the image to enhance the lane lines, the perspective is warped so it seems the lines are viewed from above.
 This enables a polynomial to be fitted to the lines. The perspective warping calibration is done by calling `cv2.getPerspectiveTransform`.
-
-![](https://github.com/wwymak/udacity-selfdrivingcar-nd/blob/master/CarND-Advanced-Lane-Lines/output_images/perspective_transform1.png)![](https://github.com/wwymak/udacity-selfdrivingcar-nd/blob/master/CarND-Advanced-Lane-Lines/output_images/perspective_transform2.png)
-
 on an image with straight lane lines, finding the source points on that image, then the destination points in a topview image, and
-calcuating the transformation matrices between them
-### Pipeline (single images)
+calculating the transformation matrices between them. The following images illustrate this process:
 
-#### 1. Provide an example of a distortion-corrected image.
+![](https://github.com/wwymak/udacity-selfdrivingcar-nd/blob/master/CarND-Advanced-Lane-Lines/output_images/perspective_transform1.png)
+![](https://github.com/wwymak/udacity-selfdrivingcar-nd/blob/master/CarND-Advanced-Lane-Lines/output_images/perspective_transform2.png)
 
-To demonstrate this step, I will describe how I apply the distortion correction to one of the test images like this one:
-![alt text][image2]
+An thresholded image that is warped to top view (with `cv2.warpPerspective`) looks like:
 
-#### 2. Describe how (and identify where in your code) you used color transforms, gradients or other methods to create a thresholded binary image.  Provide an example of a binary image result.
 
-I used a combination of color and gradient thresholds to generate a binary image (thresholding steps at lines # through # in `another_file.py`).  Here's an example of my output for this step.  (note: this is not actually from one of the test images)
 
-![alt text][image3]
+#### Fit polyline to lanes
+
+
+#### Reproject lines back to original image
+The warp perspective calibration yields 2 matrices: M for converting the normal image to topview, and Minv of converting
+the topview image to the normal view. After the lane lines are found, they are drawn onto the image with `cv2.polylines`
+and also the polygon these lines form are filled in with `cv2.fillPoly`. The image is then reprojected
+
+#### Radius of curvature/ car offset calculations:
+The final step in the processing pipeline is to calculate the radius of curvature of the left and right lines, and also, how far is the car is from the center of the lines. This information can be used in e.g. steering the car back to the center of the lane, indicating
+how much turning needs to be applied.
+
+The radius of curvature of the lines (represented by equations `f(y)=Ay^2 + By + C`) are calculated by:
+
+`Rcurv = (1+(2Ay+B)^2)^1.5)/abs(2 * A)`
+
+where the distances are converted to from pixel to actual values first.  In the video pipeline discussed in the following, this information
+is printed on the left of each frame of the video
+
+
 
 #### 3. Describe how (and identify where in your code) you performed a perspective transform and provide an example of a transformed image.
 
@@ -176,8 +193,10 @@ The final output video is [here](https://github.com/wwymak/udacity-selfdrivingca
 
 
 ### Usage/running the code:
-- The relevant analysis are all in the [Lane Lines Project.ipynb](https://github.com/wwymak/udacity-selfdrivingcar-nd/blob/master/CarND-Advanced-Lane-Lines/Lane%20Lines%20Project.ipynb) file
--  
+- The relevant analysis/ investigations are all in the [Lane Lines Project.ipynb](https://github.com/wwymak/udacity-selfdrivingcar-nd/blob/master/CarND-Advanced-Lane-Lines/Lane%20Lines%20Project.ipynb) file
+-  To only run the lane line pipeline, you can use laneline_pipeline.py file like so: `python laneline_pipeline.py --input input_video project_video.mp4  --output project_video_out.mp4`
+
+---
 
 ### Further investigations
 - improve pipeline to work on the challenge videos-- these are the ones with a lot more light and shadow (as well as a less evenly

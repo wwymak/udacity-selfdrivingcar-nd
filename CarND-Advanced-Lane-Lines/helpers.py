@@ -112,11 +112,6 @@ def draw_lane_lines(imgInput, left_xvals, right_xvals, yvals, Minv):
     points = np.concatenate((line_coords_left, np.flipud(line_coords_right)))
     cv2.fillPoly(line_canvas, [points], color=[0,255,0])
     line_canvas_inv = cv2.warpPerspective(line_canvas, Minv, (line_canvas.shape[1], line_canvas.shape[0]), flags=cv2.INTER_LINEAR)
-
-
-    #     img_to_update = cv2.cvtColor(img, cv2.COLOR_BGR2RGB)
-#     img_with_lanes = weighted_img(line_canvas_inv, img_to_update, 1., 0.4)
-
     img_with_lanes = weighted_img(line_canvas_inv, imgInput, 1., 0.4)
 
     return cv2.cvtColor(img_with_lanes, cv2.COLOR_BGR2RGB)
