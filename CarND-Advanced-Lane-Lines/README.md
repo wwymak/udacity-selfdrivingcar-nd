@@ -29,10 +29,8 @@ E.g.
 
 Uncorrected                |  Corrected                |
 :-------------------------:|:-------------------------:|
-![](https://github.com/wwymak/udacity-selfdrivingcar-nd/blob/master/CarND-Advanced-Lane-Lines/test_images/test1.jpg)  |  ![](https://github.com/wwymak/udacity-selfdrivingcar-nd/blob/master/CarND-Advanced-Lane-Lines/output_images/test1_camera_corrected.jpg)
-|
-![](https://github.com/wwymak/udacity-selfdrivingcar-nd/blob/master/CarND-Advanced-Lane-Lines/camera_cal/calibration1.jpg)|
-![](https://github.com/wwymak/udacity-selfdrivingcar-nd/blob/master/CarND-Advanced-Lane-Lines/output_images/calibration1.jpg)
+![](https://github.com/wwymak/udacity-selfdrivingcar-nd/blob/master/CarND-Advanced-Lane-Lines/test_images/test1.jpg)  | ![](https://github.com/wwymak/udacity-selfdrivingcar-nd/blob/master/CarND-Advanced-Lane-Lines/output_images/test1_camera_corrected.jpg)|
+![](https://github.com/wwymak/udacity-selfdrivingcar-nd/blob/master/CarND-Advanced-Lane-Lines/camera_cal/calibration1.jpg)|![](https://github.com/wwymak/udacity-selfdrivingcar-nd/blob/master/CarND-Advanced-Lane-Lines/output_images/calibration1.jpg)
 
 Other examples of correct chessboard images are in `https://github.com/wwymak/udacity-selfdrivingcar-nd/blob/master/CarND-Advanced-Lane-Lines/output_images/calibration*.jpg` and
 examples of the test images after undistortion are in `https://github.com/wwymak/udacity-selfdrivingcar-nd/blob/master/CarND-Advanced-Lane-Lines/output_images/test*.jpg`
@@ -46,9 +44,21 @@ An example of this step is shown below:
 
 **Color Thresholding**
 
+However, it is not sufficient to only use color thresholding, as shown below-- in certain conditions, e.g. lots of shadows,
+the color thresholding on it's own doesn't isolate the lane lines very well
+
+![](https://github.com/wwymak/udacity-selfdrivingcar-nd/blob/master/CarND-Advanced-Lane-Lines/output_images/color_thresholding_example_all.jpg)
+
 **Gradient Thresholding**
+To highlight lane lines, I also apply gradient thresholding with the Sobel operators (using `cv2.Sobel`, which takes the gradient of
+    an image in either the x or the y direction). The three thresholds I used in combination was
+- magnitude thresholding
+- direction thresholding
+- value thresholding in both x and y directions
 
+The result of the thresholding can be seen below:
 
+![](https://github.com/wwymak/udacity-selfdrivingcar-nd/blob/master/CarND-Advanced-Lane-Lines/output_images/sobel_thresholding_in_action.png)
 
 ### Pipeline (single images)
 
