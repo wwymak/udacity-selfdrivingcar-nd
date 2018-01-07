@@ -63,9 +63,10 @@ I also tried combining them, which seems to give the best result.
 
 To highlight lane lines, I also apply gradient thresholding with the Sobel operators (using `cv2.Sobel`, which takes the gradient of
     an image in either the x or the y direction). The three thresholds I used in combination was
-- magnitude thresholding (ie )
-- direction thresholding
-- value thresholding in both x and y directions
+- magnitude thresholding (ie threshold on the value of ((sobelx)^2 + (sobely)^2) ^ 0.5)
+- direction thresholding (so only allow features that have a certain angle in the image corresponding to typical angles a lane line would
+    have in a camera. Gradient angle is obtained by arctan(sobely/sobelx))
+- value thresholding in both x and y directions (so threshold sobelx and sobely separately, based on the absolute values of each)
 
 The result of the thresholding can be seen below:
 
@@ -105,6 +106,8 @@ calculating the transformation matrices between them. The following images illus
 ![](https://github.com/wwymak/udacity-selfdrivingcar-nd/blob/master/CarND-Advanced-Lane-Lines/output_images/perspective_transform2.png)
 
 An thresholded image that is warped to top view (with `cv2.warpPerspective`) looks like:
+
+![](https://github.com/wwymak/udacity-selfdrivingcar-nd/blob/master/CarND-Advanced-Lane-Lines/output_images/warp_perspective.jpg)
 
 
 
@@ -187,20 +190,20 @@ use the previous value instead (unless it's the first image)
 * if the radius of curvature of the left line is less than half that of the right (or the right curvature less than half
     that of the left), reject the detection
 
-The final output video is [here](https://github.com/wwymak/udacity-selfdrivingcar-nd/blob/master/CarND-Advanced-Lane-Lines/project_video_out_pipeplinev3.mp4)
+The final output video is [here](https://github.com/wwymak/udacity-selfdrivingcar-nd/blob/master/CarND-Advanced-Lane-Lines/project_video_output_v4.mp4)
 
 ---
 
 
 ### Usage/running the code:
 - The relevant analysis/ investigations are all in the [Lane Lines Project.ipynb](https://github.com/wwymak/udacity-selfdrivingcar-nd/blob/master/CarND-Advanced-Lane-Lines/Lane%20Lines%20Project.ipynb) file
--  To only run the lane line pipeline, you can use laneline_pipeline.py file like so: `python laneline_pipeline.py --input input_video project_video.mp4  --output project_video_out.mp4`
+-  To only run the lane line pipeline, you can use laneline_pipeline.py file like so: `python laneline_pipeline.py --input  project_video.mp4  --output project_video_out.mp4`
 
 ---
 
 ### Further investigations
 - improve pipeline to work on the challenge videos-- these are the ones with a lot more light and shadow (as well as a less evenly
     colored road surface) as compared to the project video
-at the moment, it sort of works on the challenge_video but the
+at the moment, it half  works on the challenge video (see [challenge_video_out_pipeline_v3all.mp4](https://github.com/wwymak/udacity-selfdrivingcar-nd/blob/master/CarND-Advanced-Lane-Lines/challenge_video_out_pipeline_v3all.mp4)) but the
 pipeline does have a tendency to detect the edges of the road as the left lane line. Potentially tuning the thresholding params
 could help.

@@ -1,9 +1,11 @@
+# computing packages
 import numpy as np
 import cv2
 import glob
 import matplotlib.pyplot as plt
+import helpers
 from moviepy.editor import VideoFileClip
-
+# to take arguments from the input-- where to get the input video and where to save the output to
 import argparse
 parser = argparse.ArgumentParser()
 parser.add_argument("--input", help="input video file path",type=str)
@@ -12,8 +14,10 @@ args = parser.parse_args()
 input_video = args.input
 output_video = args.output
 
+# perspective transform matrices calculated previously
 M = np.load('perspective_transform_matrix_2.npy')
 Minv = np.load('perspective_transform_matrix_inv_2.npy')
+# camera calibration calculated previous
 camera_calibration = np.load('camera_calibration.npy').item()
 dist = camera_calibration['dist']
 mtx = camera_calibration['mtx']
@@ -23,7 +27,6 @@ class Line(object):
     def __init__(self, params):
         self.__dict__.update(params)
 params = {
-    'detected' : False ,
     # x values of the last n fits of the line
     'recent_xfitted' : [],
     #average x values of the fitted line over the last n iterations
@@ -56,7 +59,7 @@ class detector:
         self.lane_finding_method = lane_finding_method
         self.leftline = leftline
         self.rightline = rightline
-
+    # histogram equalisation for enhancing contrast
     def chlaheEqualisze(self, img):
         clahe = cv2.createCLAHE(clipLimit=3.0, tileGridSize=(8,8))
         imgs = []
@@ -68,7 +71,7 @@ class detector:
         eq_img = np.stack(np.array(imgs), axis=0)
         eq_img = np.rollaxis(eq_img, 0, 3)
         return eq_img.copy()
-
+    # sobel thresholding pipeline-- outputs the combination of the threshhold
     def sobel_thresholding(self, inputImg, sksize = 3,threshx = (15,90),threshy = (30, 90)
                                ,mag_thresh = (30,100), dir_thresh = (0.7, 1.3)):
 
@@ -82,7 +85,7 @@ class detector:
         dir_thresh = (0.7, 1.3)
         color_thresh = (70,255)
         """
-
+        # x and y thresholding
         def abs_sobel_thresh(img, orient='x', sobel_kernel=3, thresh=(0, 255)):
             gray = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
             if orient == 'x':
@@ -95,7 +98,7 @@ class detector:
             grad_binary = np.zeros_like(scaled)
             grad_binary[(scaled >= thresh[0]) & (scaled <= thresh[1])] = 1
             return grad_binary
-
+        # magitude thresholding
         def mag_threshold(img, sobel_kernel=3, mag_thresh=(0, 255)):
             gray = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
             sobelx = cv2.Sobel(gray, cv2.CV_64F, 1, 0, ksize=sobel_kernel)
@@ -105,7 +108,7 @@ class detector:
             mag_binary = np.zeros_like(scaled)
             mag_binary[(scaled >= mag_thresh[0]) & (scaled <= mag_thresh[1])] = 1
             return mag_binary
-
+        # direction thresholding
         def dir_threshold(img, sobel_kernel=3, thresh=(0, np.pi/2)):
             gray = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
             sobelx = cv2.Sobel(gray, cv2.CV_64F, 1, 0, ksize=sobel_kernel)
@@ -114,7 +117,7 @@ class detector:
             dir_binary = np.zeros_like(abs_gradient)
             dir_binary[(abs_gradient >= thresh[0]) & (abs_gradient <= thresh[1])] = 1
             return dir_binary
-
+        # find the image binaries for each type of threshold
         def calculate_thresholded_imgs(inputImg, sksize = 3,threshx = (15,90),threshy = (30, 90)
                                    ,mag_thresh = (30,100), dir_thresh = (0.7, 1.3)):
             gradx = abs_sobel_thresh(inputImg, orient='x', sobel_kernel=sksize, thresh=threshx)
@@ -123,7 +126,7 @@ class detector:
             dir_binary = dir_threshold(inputImg, sobel_kernel=sksize, thresh = dir_thresh)
 
             return gradx, grady, mag_binary, dir_binary
-
+        # combine image binaries
         def calculate_combined_sobel(gradx, grady, mag_binary, dir_binary):
             combined = np.zeros_like(dir_binary)
             combined[((gradx == 1) & (grady == 1)) | ((mag_binary == 1) & (dir_binary == 1))] = 1
@@ -133,13 +136,13 @@ class detector:
         return calculate_combined_sobel(gradx_img, grady_img, mag_binary_img, dir_binary_img)
 
 
-
+    # combine both sobel and color thresholds
     def combined_thresholding(self, sobel_bin, color_binary):
         combined = np.zeros_like(sobel_bin)
         combined[(sobel_bin == 1) | (color_binary == 1)] = 1
         return combined
 
-
+    # color thresolding
     def color_thresholding_pipeline(self, img):
         def color_threshold(img, thresh=(0,255), cspace= 'HLS'):
             if cspace== 'HLS':
@@ -235,7 +238,7 @@ class detector:
         left_xval = left_fit_cr[2] + left_fit_cr[1] *y_eval*ym_per_pix + left_fit_cr[0] *(y_eval*ym_per_pix )**2
         right_xval = right_fit_cr[2] + right_fit_cr[1] *y_eval*ym_per_pix + right_fit_cr[0] *(y_eval*ym_per_pix ) **2
 
-        offset_from_center = 0.5 * (left_xval + right_xval) - xm_per_pix * self.image.shape[1]
+        offset_from_center = 0.5 * (left_xval + right_xval) - 0.5 * xm_per_pix * self.image.shape[1]
         return left_curverad_actual, right_curverad_actual, offset_from_center
 
     # sanity checking the found values-- if sanity passes use the found values for that frame in further calcs, otherwise reject
@@ -325,4 +328,4 @@ lane_detector = detector(camera_calibration, M, Minv,leftline, rightline, color_
                  lane_finding_method='histogram')
 clip1 = VideoFileClip(input_video)
 clipout = clip1.fl_image(lane_detector.pipeline)
-%time clipout.write_videofile(output_video, audio=False, verbose=False, progress_bar=False)
+clipout.write_videofile(output_video, audio=False, verbose=False, progress_bar=False)
