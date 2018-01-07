@@ -68,9 +68,6 @@ To highlight lane lines, I also apply gradient thresholding with the Sobel opera
     have in a camera. Gradient angle is obtained by arctan(sobely/sobelx))
 - value thresholding in both x and y directions (so threshold sobelx and sobely separately, based on the absolute values of each)
 
-The result of the thresholding can be seen below:
-
-![](https://github.com/wwymak/udacity-selfdrivingcar-nd/blob/master/CarND-Advanced-Lane-Lines/output_images/sobel_thresholding_in_action.png)
 
 **Thresholding-- combination**
 
@@ -95,6 +92,10 @@ The parameters I found to be the best for the thresholding pipeline are:
 | HLS threshold     |(70,255)        |
 | RGB threshold     |(150,255)        |
 
+The result of the thresholding can be seen below:
+
+![](https://github.com/wwymak/udacity-selfdrivingcar-nd/blob/master/CarND-Advanced-Lane-Lines/output_images/sobel_thresholding_in_action.png)
+
 
 #### Warp perspective
 After thresholding the image to enhance the lane lines, the perspective is warped so it seems the lines are viewed from above.
@@ -117,7 +118,8 @@ An thresholded image that is warped to top view (with `cv2.warpPerspective`) loo
 #### Reproject lines back to original image
 The warp perspective calibration yields 2 matrices: M for converting the normal image to topview, and Minv of converting
 the topview image to the normal view. After the lane lines are found, they are drawn onto the image with `cv2.polylines`
-and also the polygon these lines form are filled in with `cv2.fillPoly`. The image is then reprojected
+and also the polygon these lines form are filled in with `cv2.fillPoly`. The image is then reprojected back onto the original view
+with Minv
 
 #### Radius of curvature/ car offset calculations:
 The final step in the processing pipeline is to calculate the radius of curvature of the left and right lines, and also, how far is the car is from the center of the lines. This information can be used in e.g. steering the car back to the center of the lane, indicating
@@ -128,7 +130,12 @@ The radius of curvature of the lines (represented by equations `f(y)=Ay^2 + By +
 `Rcurv = (1+(2Ay+B)^2)^1.5)/abs(2 * A)`
 
 where the distances are converted to from pixel to actual values first.  In the video pipeline discussed in the following, this information
-is printed on the left of each frame of the video
+is printed on the left of each frame of the video. In the topview image, the values for the left and right lane lines should be roughly similar, and on the order of a few kms. In the video pipeline, I have set a check such that if either the left or right curvature is less  than half of the other, the detection pipeline hasn't gone well and the values are not used in that frame. On some of the test images, the radius of curvature of the left and right lanes differ by much more than half, but the detected lane areas actually are still fairly accurate.
+![](https://github.com/wwymak/udacity-selfdrivingcar-nd/blob/master/CarND-Advanced-Lane-Lines/output_images/lane_finding_pipeline_alltests.jpg)
+
+The following image shows the final output from the whole pipeline after reprojection and radius of curvature calculation on one of the frames of the project video:
+
+![](https://github.com/wwymak/udacity-selfdrivingcar-nd/blob/master/CarND-Advanced-Lane-Lines/output_images/example_output.jpg)
 
 
 
