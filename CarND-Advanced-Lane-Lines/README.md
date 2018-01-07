@@ -125,11 +125,15 @@ An thresholded image that is warped to top view (with `cv2.warpPerspective`) loo
 
 #### Finding lane line pixels in the reprojected image-- histogram method
 1. find where the peaks are across a line in the middle of the image by plotting a histogram:
+
     ![](https://github.com/wwymak/udacity-selfdrivingcar-nd/blob/master/CarND-Advanced-Lane-Lines/output_images/lane_finding1.png)
+
 2. Find the left and right peaks using the argmax function in numpy, then searching in a series of windows from top to bottom of the image,
 find where the non zero pixels in the binary image is. Each subsequent window takes into account the position of the previous one-- the peak position is updated in each window and the next one will use this to search for non zero pixels:
+
 ![](https://github.com/wwymak/udacity-selfdrivingcar-nd/blob/master/CarND-Advanced-Lane-Lines/output_images/lane_finding2.png)
 3. the nonzero pixels form the points for the polynomial fit (order2):
+
 ![](https://github.com/wwymak/udacity-selfdrivingcar-nd/blob/master/CarND-Advanced-Lane-Lines/output_images/lane_finding3.png)
 
 #### Fit polyline to lanes
