@@ -38,6 +38,7 @@ examples of the test images after undistortion are in `https://github.com/wwymak
 ---
 
 ### Image denoising/enhancing
+As mentioned, this is done via Gaussian Blur and CLAHE (contrast limited adaptive histogram equalisation).
 An example of this step is shown below:
 
 ![](https://github.com/wwymak/udacity-selfdrivingcar-nd/blob/master/CarND-Advanced-Lane-Lines/output_images/image_cleaning.png)
@@ -118,7 +119,12 @@ This enables a polynomial to be fitted to the lines. The perspective warping cal
 on an image with straight lane lines, finding the source points on that image, then the destination points in a topview image, and
 calculating the transformation matrices between them. The following images illustrate this process:
 
+1. Find the corners on an image with straight lane lines:
+
 ![](https://github.com/wwymak/udacity-selfdrivingcar-nd/blob/master/CarND-Advanced-Lane-Lines/output_images/perspective_transform1.png)
+
+2.  Determine the desired destination corner, and warp
+
 ![](https://github.com/wwymak/udacity-selfdrivingcar-nd/blob/master/CarND-Advanced-Lane-Lines/output_images/perspective_transform2.png)
 
 The source and destination points used are:
@@ -201,7 +207,7 @@ The final output video is [here](https://github.com/wwymak/udacity-selfdrivingca
 -  To actually run the final lane line detection pipeline on videos without having to go through the notebook, you can use laneline_pipeline.py file like so: `python laneline_pipeline.py --input  project_video.mp4  --output project_video_out.mp4`. The code
 in the file is also annotated to point out where the processing steps are
 - helpers.py contains a few useful functions (could probably have put the relevant one into laneline_pipeline.py, but it works where it is now :wink:)
-
+- there are a few project video output mp4 files. Some of them are from previous experiments, so please look at the main one mentioned above (project_video_output_v4.mp4)
 ---
 
 ### Further investigations
