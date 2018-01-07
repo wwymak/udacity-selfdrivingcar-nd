@@ -106,13 +106,30 @@ calculating the transformation matrices between them. The following images illus
 ![](https://github.com/wwymak/udacity-selfdrivingcar-nd/blob/master/CarND-Advanced-Lane-Lines/output_images/perspective_transform1.png)
 ![](https://github.com/wwymak/udacity-selfdrivingcar-nd/blob/master/CarND-Advanced-Lane-Lines/output_images/perspective_transform2.png)
 
+The source and destination points used are:
+
+| Source        | Destination   |
+|:-------------:|:-------------:|
+| 205, 725      | 205, 725      |
+| 450,550       | 205,550       |
+| 842,550       | 1115,550     |
+| 1115, 725     | 1115, 725    |
+
+I chose not to change the y values of the warped to topview images since this would affect the radius of curvature calculation--
+e.g. if my destination points are chosen to be [(x1, 0), (x1, ymax), (x2, 0), (x2, ymax)] then the lines would be 'strecthed' in the vertical direction and the radius of curvature would be less than it should be (of course, I could have added in extra adjustment but
+    decided to keep things simple)
+
 An thresholded image that is warped to top view (with `cv2.warpPerspective`) looks like:
 
 ![](https://github.com/wwymak/udacity-selfdrivingcar-nd/blob/master/CarND-Advanced-Lane-Lines/output_images/warp_perspective.jpg)
 
-
+#### Finding lane line pixels in the reprojected image
+![](https://github.com/wwymak/udacity-selfdrivingcar-nd/blob/master/CarND-Advanced-Lane-Lines/output_images/lane_finding_1.png)
+![](https://github.com/wwymak/udacity-selfdrivingcar-nd/blob/master/CarND-Advanced-Lane-Lines/output_images/lane_finding2.png)
+![](https://github.com/wwymak/udacity-selfdrivingcar-nd/blob/master/CarND-Advanced-Lane-Lines/output_images/lane_finding3.png)
 
 #### Fit polyline to lanes
+Once the lane line pixels are found, a 2nd order polynomial is fitted to the points with the `np.polylines` function
 
 
 #### Reproject lines back to original image
@@ -138,56 +155,9 @@ The following image shows the final output from the whole pipeline after reproje
 ![](https://github.com/wwymak/udacity-selfdrivingcar-nd/blob/master/CarND-Advanced-Lane-Lines/output_images/example_output.jpg)
 
 
-
-#### 3. Describe how (and identify where in your code) you performed a perspective transform and provide an example of a transformed image.
-
-The code for my perspective transform includes a function called `warper()`, which appears in lines 1 through 8 in the file `example.py` (output_images/examples/example.py) (or, for example, in the 3rd code cell of the IPython notebook).  The `warper()` function takes as inputs an image (`img`), as well as source (`src`) and destination (`dst`) points.  I chose the hardcode the source and destination points in the following manner:
-
-```python
-src = np.float32(
-    [[(img_size[0] / 2) - 55, img_size[1] / 2 + 100],
-    [((img_size[0] / 6) - 10), img_size[1]],
-    [(img_size[0] * 5 / 6) + 60, img_size[1]],
-    [(img_size[0] / 2 + 55), img_size[1] / 2 + 100]])
-dst = np.float32(
-    [[(img_size[0] / 4), 0],
-    [(img_size[0] / 4), img_size[1]],
-    [(img_size[0] * 3 / 4), img_size[1]],
-    [(img_size[0] * 3 / 4), 0]])
-```
-
-This resulted in the following source and destination points:
-
-| Source        | Destination   |
-|:-------------:|:-------------:|
-| 585, 460      | 320, 0        |
-| 203, 720      | 320, 720      |
-| 1127, 720     | 960, 720      |
-| 695, 460      | 960, 0        |
-
-I verified that my perspective transform was working as expected by drawing the `src` and `dst` points onto a test image and its warped counterpart to verify that the lines appear parallel in the warped image.
-
-![alt text][image4]
-
-#### 4. Describe how (and identify where in your code) you identified lane-line pixels and fit their positions with a polynomial?
-
-Then I did some other stuff and fit my lane lines with a 2nd order polynomial kinda like this:
-
-![alt text][image5]
-
-#### 5. Describe how (and identify where in your code) you calculated the radius of curvature of the lane and the position of the vehicle with respect to center.
-
-I did this in lines # through # in my code in `my_other_file.py`
-
-#### 6. Provide an example image of your result plotted back down onto the road such that the lane area is identified clearly.
-
-I implemented this step in lines # through # in my code in `yet_another_file.py` in the function `map_lane()`.  Here is an example of my result on a test image:
-
-![alt text][image6]
-
 ---
 
-#### Pipeline (video)
+### Pipeline (video)
 
 The processing steps for the video is quite similar, however, there are a few extra steps to smooth out the line detection:
 * the last 5 frames are averaged to find the line of best fit for the lane lines in the current frame (this helps to reduce 'jitter'
@@ -204,7 +174,7 @@ The final output video is [here](https://github.com/wwymak/udacity-selfdrivingca
 
 ### Usage/running the code:
 - The relevant analysis/ investigations are all in the [Lane Lines Project.ipynb](https://github.com/wwymak/udacity-selfdrivingcar-nd/blob/master/CarND-Advanced-Lane-Lines/Lane%20Lines%20Project.ipynb) file
--  To only run the lane line pipeline, you can use laneline_pipeline.py file like so: `python laneline_pipeline.py --input  project_video.mp4  --output project_video_out.mp4`
+-  To actually run the final lane line detection pipeline on videos without having to go through the notebook, you can use laneline_pipeline.py file like so: `python laneline_pipeline.py --input  project_video.mp4  --output project_video_out.mp4`
 
 ---
 
@@ -214,3 +184,5 @@ The final output video is [here](https://github.com/wwymak/udacity-selfdrivingca
 at the moment, it half  works on the challenge video (see [challenge_video_out_pipeline_v3all.mp4](https://github.com/wwymak/udacity-selfdrivingcar-nd/blob/master/CarND-Advanced-Lane-Lines/challenge_video_out_pipeline_v3all.mp4)) but the
 pipeline does have a tendency to detect the edges of the road as the left lane line. Potentially tuning the thresholding params
 could help.
+- optimisation: at the moment, it takes around 15 minutes to process a one minute video. This is hardly ideal as the processing time means
+that the line detection can't happen in real time, which is needed for a self driving car.
