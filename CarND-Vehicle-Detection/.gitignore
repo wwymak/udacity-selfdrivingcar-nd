@@ -4,3 +4,4 @@ data
 models
 data_keras
 *.npy
+*.h5
