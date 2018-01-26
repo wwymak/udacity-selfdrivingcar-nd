@@ -14,7 +14,21 @@ detection models-- single shot detection
 ### Histogram of Oriented Gradients (HOG)
 
 
-### 
+### Fine tuning Mobilenet with sliding sliding windows
+
+The output video performance is more or less acceptable, detecting the 2 main cars closest to the camera. However, there is still
+a lot of jitter and a few false positives, which could potentially be resolved by experimenting with more window sizes and better/
+more training data. However, the main issue with this approach is the time taken to process each image. Using python's `time` module, the network takes around 3s per image, which is nowhere near sufficient to run this in real time. (some of the earliest neural network based object detection used this approach, with more or less the same problem.)
+
+The output video of this experiment can be downloaded from [here](https://github.com/wwymak/udacity-selfdrivingcar-nd/blob/master/CarND-Vehicle-Detection/outvideo_mobilenet_full.mp4)
+
+### Single Shot MultiBox Detector (SSD)
+
+The original implementation of SSD is in Caffe, however, as I am more familiar with Keras, I used the Keras implementation of
+SSD from  https://github.com/pierluigiferrari/ssd_keras instead. 
+
+A fairly recent CNN based object detector is the single shot multiBox detector (ref [here](https://arxiv.org/abs/1512.02325))
+
 
 The goals / steps of this project are the following:
 
