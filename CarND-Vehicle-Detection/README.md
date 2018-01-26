@@ -24,10 +24,15 @@ The output video of this experiment can be downloaded from [here](https://github
 
 ### Single Shot MultiBox Detector (SSD)
 
-The original implementation of SSD is in Caffe, however, as I am more familiar with Keras, I used the Keras implementation of
-SSD from  https://github.com/pierluigiferrari/ssd_keras instead. 
-
 A fairly recent CNN based object detector is the single shot multiBox detector (ref [here](https://arxiv.org/abs/1512.02325))
+
+
+The original implementation of SSD is in Caffe, however, as I am more familiar with Keras, I used the Keras implementation of
+SSD from  https://github.com/pierluigiferrari/ssd_keras instead.
+
+#### Experimenting with different SSDs:
+
+
 
 
 The goals / steps of this project are the following:
@@ -53,12 +58,6 @@ The goals / steps of this project are the following:
 ### Here I will consider the rubric points individually and describe how I addressed each point in my implementation.  
 
 ---
-### Writeup / README
-
-#### 1. Provide a Writeup / README that includes all the rubric points and how you addressed each one.  You can submit your writeup as markdown or pdf.  [Here](https://github.com/udacity/CarND-Vehicle-Detection/blob/master/writeup_template.md) is a template writeup for this project you can use as a guide and a starting point.  
-
-You're reading it!
-
 ### Histogram of Oriented Gradients (HOG)
 
 #### 1. Explain how (and identify where in your code) you extracted HOG features from the training images.
@@ -125,8 +124,10 @@ Here's an example result showing the heatmap from a series of frames of video, t
 
 ---
 
-### Discussion
+### Further work
+I would like to tune the video processing pipeline further to reduce the 'jitter', e.g. averaging over frames.
 
-#### 1. Briefly discuss any problems / issues you faced in your implementation of this project.  Where will your pipeline likely fail?  What could you do to make it more robust?
-
-Here I'll talk about the approach I took, what techniques I used, what worked and why, where the pipeline might fail and how I might improve it if I were going to pursue this project further.  
+To further my understanding of the SSD architecture, I would also like to spend some time reimplementing from scratch in Keras
+a SSD network, as well as explore other recent developments, e.g. the YOLO9000 architecture. Also interesting to explore
+would be semantic segmentation (a good overview of this [here](http://blog.qure.ai/notes/semantic-segmentation-deep-learning-review)), detecting the actual cars's shape as opposed to a bounding box, and using this to assign pixels in a video frame to different
+objects.
