@@ -32,16 +32,32 @@ The network presented in the paper is trained on (and evaluated against) the Pas
 and [COCO](http://cocodataset.org/) datasets. The Pascal dataset has 20 classes (cars among them)
 
 The original implementation of [SSD](https://github.com/weiliu89/caffe/tree/ssd) is in Caffe, however, as I am more familiar with Keras, I used the Keras implementation of
-SSD from  https://github.com/pierluigiferrari/ssd_keras instead. There are a few pretrained networks available from ssd_keras, including ssd300 (trained on the Pascal VOC dataset)-- based on the original Caffe implementation and follows the paper, as well as an example of a smaller custom network. SSD300 is 
+SSD from  https://github.com/pierluigiferrari/ssd_keras instead. There are a few pretrained networks available from ssd_keras, including ssd300 (trained on the Pascal VOC dataset)-- based on the original Caffe implementation and follows the paper, as well as an example of a smaller custom network.
 
-For my own custom model, I used the [udacity annotated driving dataset](https://github.com/udacity/self-driving-car/tree/master/annotations) as the training dataset. The dataset has around 20K images in total, matching
-the size of the Pascal dataset, but has more relevant classes (although the Pascal dataset has cars too). The KITTI/udacity datasets provided
-for the project does not fit with my requirements for model training as that is purely for differentiating betweeen cars and not cars,
+I tested 2 models on the vehicle detection problem-- one is a smaller network I developed with a mobilenet backend, and the
+4 classification + 4 bounding box detection layers branching off from the last 4 conv blocks, and also the full SSD300 network
+(using the pretrained weights)
+
+The training script for the mobilenet ssd is [here](https://github.com/wwymak/udacity-selfdrivingcar-nd/blob/master/CarND-Vehicle-Detection/mobilenet-ssd-training.py) and the
+prediction and movie creation task on this network is [here](https://github.com/wwymak/udacity-selfdrivingcar-nd/blob/master/CarND-Vehicle-Detection/mobilenet-ssd-predict.ipynb)
+
+#### Mobilenet SSD
+The network architecture is shown [here](https://github.com/wwymak/udacity-selfdrivingcar-nd/blob/master/CarND-Vehicle-Detection/mobilenet-architecture.md)
+
+For my own custom model, I used the traffic [dataset](https://drive.google.com/file/d/0B0WbA4IemlxlT1IzQ0U1S2xHYVU/view?usp=sharing) provided by ssd_keras (this is based on the [udacity annotated driving dataset](https://github.com/udacity/self-driving-car/tree/master/annotations), but with images scaled down to 300 x 480, which is
+much more manageable for a neural network )as the training dataset. The dataset has around 20K images in total, matching
+the size of the Pascal dataset, but has more relevant classes (although the Pascal dataset has cars too). As mentioned
+
+The KITTI/udacity datasets provided
+for the project does not fit with my requirements for model training as that is purely for differentiating between cars and not cars,
 rather than a set of images with annotated bounding boxes of where the cars are
 
-#### Results
+#### Results of SSD
 
-The best video is from the pretrained SSD300 network [here](https://github.com/wwymak/udacity-selfdrivingcar-nd/blob/master/CarND-Vehicle-Detection/ssd_300_v1.mp4). While it does not detect the small vehicles in the distance, it does not throw up false positives
+The best video is from the pretrained SSD300 network [here](https://github.com/wwymak/udacity-selfdrivingcar-nd/blob/master/CarND-Vehicle-Detection/ssd_300_v1.mp4). While it does not detect the small vehicles in the distance/ at the opposite lane, it does not throw up any false positives, even with no averaging over video frames. This is not perhaps not surprising as the pretrained SSD300 has been trained for a much higher number of steps
+compared to my mobilenet SSD, and also has undergone a detailed parameter tuning (e.g. the different box scales).
+
+
 
 
 #### Experimenting with different SSDs:
