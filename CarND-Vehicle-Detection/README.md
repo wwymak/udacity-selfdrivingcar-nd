@@ -27,8 +27,15 @@ The output video of this experiment can be downloaded from [here](https://github
 A fairly recent CNN based object detector is the single shot multiBox detector (ref [here](https://arxiv.org/abs/1512.02325))
 
 
-The original implementation of SSD is in Caffe, however, as I am more familiar with Keras, I used the Keras implementation of
-SSD from  https://github.com/pierluigiferrari/ssd_keras instead.
+The original implementation of [SSD](https://github.com/weiliu89/caffe/tree/ssd) is in Caffe, however, as I am more familiar with Keras, I used the Keras implementation of
+SSD from  https://github.com/pierluigiferrari/ssd_keras instead. There are a few pretrained networks available from ssd_keras, including ssd300-- based on the original Caffe implementation and follows the paper, as well as an example of a smaller custom
+network. SSD300 is trained on the Pascal VOC dataset
+
+For my own custom model, I used the [udacity annotated driving dataset](https://github.com/udacity/self-driving-car/tree/master/annotations). The dataset has around 20K images in total, matching
+the size of the Pascal dataset, but has more relevant classes (although the Pascal dataset has cars too)
+
+The best video is from the pretrained SSD300 network [here](https://github.com/wwymak/udacity-selfdrivingcar-nd/blob/master/CarND-Vehicle-Detection/ssd_300_v1.mp4)
+
 
 #### Experimenting with different SSDs:
 
