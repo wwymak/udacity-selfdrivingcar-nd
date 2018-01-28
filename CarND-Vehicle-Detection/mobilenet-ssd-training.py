@@ -187,11 +187,10 @@ def mobilenet_model(image_shape, n_classes, input_shape=(128,128,3), l2_reg=0.0,
                                                                  anchors6_reshaped,
                                                                  anchors7_reshaped])
 
-#     classification_softmax = Activation('softmax', name='classes_softamx')(class_concat)
+
     classes_softmax = Activation('softmax', name='classes_softmax')(class_concat)
 
     prediction = Concatenate(axis=2,name='concatenate_output')([
-#         class_concat,
                                                             classes_softmax,
                                                               boxes_concat,
                                                               anchors_concat ])
@@ -221,7 +220,7 @@ model_path = 'ssd7_train/ssd7_mobilenet_v1.h5'
 ssd_loss = SSDLoss(neg_pos_ratio=3, n_neg_min=0, alpha=1.0)
 
 K.clear_session()
-
+# if loading model, also remember to pass in the custom mobilenet modules, and the custom ssd_keras modules to the load_model method
 model = load_model(model_path, custom_objects={'AnchorBoxes': AnchorBoxes,
                                                'L2Normalization': L2Normalization,
                                                'compute_loss': ssd_loss.compute_loss,
@@ -251,13 +250,10 @@ ssd_box_encoder = SSDBoxEncoder(img_height=300,
                                 coords='centroids',
                                 normalize_coords=True)
 
-# 4: Set the batch size.
 
-batch_size = 32 # Change the batch size if you like, or if you run into memory issues with your GPU.
+batch_size = 32
 
-# 5: Set the image processing / data augmentation options and create generator handles.
-
-# Change the online data augmentation settings as you like
+# data augmentation for training
 train_generator = train_dataset.generate(batch_size=batch_size,
                                          shuffle=True,
                                          train=True,
@@ -303,7 +299,7 @@ epochs = 30
 history = model.fit_generator(generator = train_generator,
                               steps_per_epoch = (n_train_samples//batch_size),
                               epochs = epochs,
-                              callbacks = [ModelCheckpoint('ssd7_train/ssd7_mobilenet_weights_epoch-{(epoch+30):02d}_loss-{loss:.4f}.h5',
+                              callbacks = [ModelCheckpoint('ssd7_train/ssd7_mobilenet_weights_epoch-{epoch:02d}_loss-{loss:.4f}.h5',
                                                            monitor='val_loss',
                                                            verbose=1,
                                                            save_best_only=True,

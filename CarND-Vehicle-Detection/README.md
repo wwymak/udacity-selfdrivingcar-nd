@@ -10,8 +10,9 @@ run a classifier for object detection. However, this is a rather old method that
 Therefore, to get to the end goal of annotating a video stream, I used a neural network based model.
 
 There are 3 parts to the project-- an initial exploration of the traditional HOG extraction so I can gain an understanding of the technique, an experiment with a fine tuned mobilenet using the sliding window method, and utilising one of the newest object
-detection models-- Single Shot Multibox Detection. (SSD) The focus of the discussion will be on the SSD (and also a bit on the CNN with sliding windows.) 
+detection models-- Single Shot Multibox Detection. (SSD) The focus of the discussion will be on the SSD (and also a bit on the CNN with sliding windows.). My brief exploration of HOG methods is in [Object-detection1.ipynb](https://github.com/wwymak/udacity-selfdrivingcar-nd/blob/master/CarND-Vehicle-Detection/Object-detection1.ipynb) (but as it is not well annotated and I didn't go very far down this route it's not very interesting to look at)
 
+---
 
 ### Fine tuning Mobilenet, vehicle detection in images with sliding windows
 
@@ -27,17 +28,16 @@ A fairly recent CNN based object detector is the single shot multiBox detector (
 one of the best performing models in terms of speed and accuracy, (in the paper they quoted a value of 59 frames a second, with 79% mean average precision on the object detection/classification task). I decided that this should be a very good method for the
 vehicle detection task for this project, as it would enable an accurate real time car detection.
 
-The basics  of the network is as follows:
+The structure  of the network is as follows:
 
 ![](https://github.com/wwymak/udacity-selfdrivingcar-nd/blob/master/CarND-Vehicle-Detection/examples/SSD_architecture.png).
 
 The base model of the VGG16 is used to extract features
 
 The network presented in the paper is trained on (and evaluated against) the PascalVOC[http://host.robots.ox.ac.uk/pascal/VOC/]
-and [COCO](http://cocodataset.org/) datasets. The Pascal dataset has 20 classes (cars among them)
-
-The original implementation of [SSD](https://github.com/weiliu89/caffe/tree/ssd) is in Caffe, however, as I am more familiar with Keras, I used the Keras implementation of
-SSD from  https://github.com/pierluigiferrari/ssd_keras instead. There are a few pretrained networks available from ssd_keras, including ssd300 (trained on the Pascal VOC dataset)-- based on the original Caffe implementation and follows the paper, as well as an example of a smaller custom network.
+and [COCO](http://cocodataset.org/) datasets. Both the Pascal and COCO datasets has cars among their object detection/classification classes. Therefore, it is entirely possible to use a pretrained network from the paper, filtering on the 'cars' class. However,
+the original implementation of [SSD](https://github.com/weiliu89/caffe/tree/ssd) is in Caffe, and as I am more familiar with Keras, I used the Keras implementation of
+SSD from  https://github.com/pierluigiferrari/ssd_keras instead. Besides very good documnetation and explanation in the code in ssd_keras about how the SSD is reimplementated in Keras, there is also a lot of useful utility classes and layers that makes constructing my onw network easier.
 
 I tested 2 models on the vehicle detection problem-- one is a smaller network I developed with a mobilenet backend, and the
 4 classification + 4 bounding box detection layers branching off from the last 4 conv blocks, and also the full SSD300 network
@@ -51,17 +51,24 @@ As a learning task, I also constructed a SSD network with a mobilenet backend in
 
 The network architecture is shown [here](https://github.com/wwymak/udacity-selfdrivingcar-nd/blob/master/CarND-Vehicle-Detection/mobilenet-architecture.md).
 
-For my own custom model, I used the traffic [dataset](https://drive.google.com/file/d/0B0WbA4IemlxlT1IzQ0U1S2xHYVU/view?usp=sharing) provided by ssd_keras (this is based on the [udacity annotated driving dataset](https://github.com/udacity/self-driving-car/tree/master/annotations), but with images scaled down to 300 x 480, which is
-much more manageable for a neural network ) as the training dataset. The dataset has around 20K images in total, matching
+It uses [mobilenet](https://arxiv.org/pdf/1704.04861.pdf) as the feature extractor, and the output from the last 4 pointwise conv layers (after relu activation) is fed into the object classifier and the box classifiers for object detection. I chose mobilenet as
+a base as mobilenets are optimsed to be more efficient in terms of computing time and is also less memory intense. This is
+likely to be useful in a self driving car situation where the detection should run as close to real time as possible and the
+model should also not require a lot of computing power to run.
+
+For training, I used the [traffic dataset](https://drive.google.com/file/d/0B0WbA4IemlxlT1IzQ0U1S2xHYVU/view?usp=sharing) provided by ssd_keras (this is based on the [udacity annotated driving dataset](https://github.com/udacity/self-driving-car/tree/master/annotations), but with images scaled down to 300 x 480, which is
+much more manageable for a neural network ). The dataset has around 20K images in total, matching
 the size of the Pascal dataset, but has more relevant classes (although the Pascal dataset has cars too).
 In the current implementation, I trained the model from scratch over 70 epochs. As mentioned in the paper, data augmentation is
-very important to get good accuracy in training,
+very important to get good accuracy in training, and I used translation, horizontal flips, brightness variation and scaling for this.
+The code for the training process is 
 
 **Prediction**
 
 The code in [mobilenet-ssd-predict.ipynb](https://github.com/wwymak/udacity-selfdrivingcar-nd/blob/master/CarND-Vehicle-Detection/mobilenet-ssd-predict.ipynb) shows how to use the mobilenet SSD to detect vehicles, as well as the movie processing pipeline. There are more details in the notebook, but the main observations are as follows:
 
 In terms of predicting on the training/validation data from the udacity traffic dataset:
+
 
 
 #### Results of SSD

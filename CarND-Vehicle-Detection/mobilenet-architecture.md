@@ -1,5 +1,10 @@
 ### Mobilenet SSD architecture
 
+Everything from `conv1` to `conv_pw_13_relu` is from the official keras implementation of MobileNet
+`input_mean_norm` and `input_scaler` are normalisation layers. Classes 4 to 7 are the classification
+layers of the SSD, box4 to 7 (together with the AnchorBoxes layers) are for predicting bounding boxes, and the  
+concatenation layers are to put the various class/boxes features together for the final prediction output
+
 ```
 __________________________________________________________________________________________________
 Layer (type)                    Output Shape         Param #     Connected to
