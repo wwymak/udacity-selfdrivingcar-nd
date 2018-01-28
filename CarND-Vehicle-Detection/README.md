@@ -83,9 +83,14 @@ The code in [mobilenet-ssd-predict.ipynb](https://github.com/wwymak/udacity-self
 
 ![](https://github.com/wwymak/udacity-selfdrivingcar-nd/blob/master/CarND-Vehicle-Detection/output_images/test5_predicted.jpg)   ![](https://github.com/wwymak/udacity-selfdrivingcar-nd/blob/master/CarND-Vehicle-Detection/output_images/test6_predicted.jpg)   
 
-#### Results of SSD
+#### Video processing
 
-The best video is from the pretrained SSD300 network [here](https://github.com/wwymak/udacity-selfdrivingcar-nd/blob/master/CarND-Vehicle-Detection/ssd_300_v1.mp4). While it does not detect the small vehicles in the distance/ at the opposite lane, it does not throw up any false positives, with no further processing on video frames needed. This is not perhaps not surprising as the pretrained SSD300 has been trained for a much higher number of steps
+The video processed using the pretrained SSD300 network is [ssd_300_v1.mp4](https://github.com/wwymak/udacity-selfdrivingcar-nd/blob/master/CarND-Vehicle-Detection/ssd_300_v1.mp4), and
+the video processed using my mobilenet SSD network is [ssd_mobilenet_with_averaging.mp4](https://github.com/wwymak/udacity-selfdrivingcar-nd/blob/master/CarND-Vehicle-Detection/ssd_mobilenet_with_averaging)
+
+As per above discussion, my mobilenet SSD has a tendency to detect false positives in the  In my video processing pipeline, 
+
+ While it does not detect the small vehicles in the distance/ at the opposite lane, it does not throw up any false positives, with no further processing on video frames needed. This is not perhaps not surprising as the pretrained SSD300 has been trained for a much higher number of steps
 compared to my mobilenet SSD, and also has undergone a detailed parameter tuning (e.g. the different box scales).
 
 My own
