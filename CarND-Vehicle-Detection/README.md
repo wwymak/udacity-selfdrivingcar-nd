@@ -68,6 +68,10 @@ The code for the training process is [mobilenet-ssd-training.py](https://github.
 The code in [mobilenet-ssd-predict.ipynb](https://github.com/wwymak/udacity-selfdrivingcar-nd/blob/master/CarND-Vehicle-Detection/mobilenet-ssd-predict.ipynb) shows how to use the mobilenet SSD to detect vehicles, as well as the movie processing pipeline. There are more details in the notebook, but the main observations are as follows:
 
 **Prediction on udacity traffic dataset**
+
+The following are a set of 6 images randomly picked from the udacity traffic dataset. As can be seen, the model did a pretty good job
+at detecting the bounding boxes for the cars. So, would this translate to the test images and the video?
+
 ![](https://github.com/wwymak/udacity-selfdrivingcar-nd/blob/master/CarND-Vehicle-Detection/output_images/1478732080090015975_predicted.jpg)   ![](https://github.com/wwymak/udacity-selfdrivingcar-nd/blob/master/CarND-Vehicle-Detection/output_images/1478895368744352345_predicted.jpg)   
 
 ![](https://github.com/wwymak/udacity-selfdrivingcar-nd/blob/master/CarND-Vehicle-Detection/output_images/1478897820720062731_predicted.jpg)   ![](https://github.com/wwymak/udacity-selfdrivingcar-nd/blob/master/CarND-Vehicle-Detection/output_images/1478901524392001997_predicted.jpg)   
@@ -77,18 +81,24 @@ The code in [mobilenet-ssd-predict.ipynb](https://github.com/wwymak/udacity-self
 
 **Prediction on the test images**
 
+The following is the model on the test images, which are what the video frames look like. The model works fairly well, but
+has false positives, detecting cars in the 'shadows' along the left railing. Potentially, this could be because the training dataset
+has more images with cars in shadows, or that it has not learnt to deal with the high light/dark contrast very well. In my video pipeline (discussion below), I implemented an 'averaging' filter to reduce the false positives.
+
 ![](https://github.com/wwymak/udacity-selfdrivingcar-nd/blob/master/CarND-Vehicle-Detection/output_images/test1_predicted.jpg)   ![](https://github.com/wwymak/udacity-selfdrivingcar-nd/blob/master/CarND-Vehicle-Detection/output_images/test2_predicted.jpg)   
 
 ![](https://github.com/wwymak/udacity-selfdrivingcar-nd/blob/master/CarND-Vehicle-Detection/output_images/test3_predicted.jpg)   ![](https://github.com/wwymak/udacity-selfdrivingcar-nd/blob/master/CarND-Vehicle-Detection/output_images/test4_predicted.jpg)   
 
-![](https://github.com/wwymak/udacity-selfdrivingcar-nd/blob/master/CarND-Vehicle-Detection/output_images/test5_predicted.jpg)   ![](https://github.com/wwymak/udacity-selfdrivingcar-nd/blob/master/CarND-Vehicle-Detection/output_images/test6_predicted.jpg)   
+![](https://github.com/wwymak/udacity-selfdrivingcar-nd/blob/master/CarND-Vehicle-Detection/output_images/test5_predicted.jpg)   ![](https://github.com/wwymak/udacity-selfdrivingcar-nd/blob/master/CarND-Vehicle-Detection/output_images/test6_predicted.jpg)
+
+*my mobilenet ssd model can be downloaded from https://storage.googleapis.com/udacity-sdcnd-misc/CarND-Vehicle-Detection/ssd7_train/ssd7_mobilenet_v1.h5 and the weights from https://storage.googleapis.com/udacity-sdcnd-misc/CarND-Vehicle-Detection/ssd7_train/ssd7_mobilenet_v1_weights.h5*  
 
 #### Video processing
 
 The video processed using the pretrained SSD300 network is [ssd_300_v1.mp4](https://github.com/wwymak/udacity-selfdrivingcar-nd/blob/master/CarND-Vehicle-Detection/ssd_300_v1.mp4), and
 the video processed using my mobilenet SSD network is [ssd_mobilenet_with_averaging.mp4](https://github.com/wwymak/udacity-selfdrivingcar-nd/blob/master/CarND-Vehicle-Detection/ssd_mobilenet_with_averaging)
 
-As per above discussion, my mobilenet SSD has a tendency to detect false positives in the  In my video processing pipeline, 
+As per above discussion, my mobilenet SSD has a tendency to detect false positives in the  In my video processing pipeline,
 
  While it does not detect the small vehicles in the distance/ at the opposite lane, it does not throw up any false positives, with no further processing on video frames needed. This is not perhaps not surprising as the pretrained SSD300 has been trained for a much higher number of steps
 compared to my mobilenet SSD, and also has undergone a detailed parameter tuning (e.g. the different box scales).
@@ -101,9 +111,11 @@ needed, the network is likely to be even faster-- and gets close to the goal of 
 
 
 ### Further work
-I would like to tune the video processing pipeline further to reduce the 'jitter', e.g. averaging over frames.
 
-To further my understanding of the SSD architecture, I would also like to spend some time reimplementing from scratch in Keras
-a SSD network, as well as explore other recent developments, e.g. the YOLO9000 architecture. Also interesting to explore
-would be semantic segmentation (a good overview of this [here](http://blog.qure.ai/notes/semantic-segmentation-deep-learning-review)), detecting the actual cars's shape as opposed to a bounding box, and using this to assign pixels in a video frame to different
-objects.
+- Do some more experimentation on parameter tuning, such as the different scaling/variances for the anchor boxes, different training
+data augmentation techniques, etc.
+
+- To further my understanding of the SSD architecture, I would also like to spend some time reimplementing from scratch in Keras
+a SSD network, as well as explore other recent developments, e.g. the YOLO9000 architecture.
+
+- explore semantic segmentation (a good overview of this [here](http://blog.qure.ai/notes/semantic-segmentation-deep-learning-review)), detecting the actual cars's shape as opposed to a bounding box, and using this to assign pixels in a video frame to different objects, such as lane lines, cars, traffic signs etc
