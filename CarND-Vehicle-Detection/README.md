@@ -63,11 +63,19 @@ In the current implementation, I trained the model from scratch over 70 epochs. 
 very important to get good accuracy in training, and I used translation, horizontal flips, brightness variation and scaling for this.
 The code for the training process is [mobilenet-ssd-training.py](https://github.com/wwymak/udacity-selfdrivingcar-nd/blob/master/CarND-Vehicle-Detection/mobilenet-ssd-training.py)
 
-**Prediction**
+##### Prediction
 
 The code in [mobilenet-ssd-predict.ipynb](https://github.com/wwymak/udacity-selfdrivingcar-nd/blob/master/CarND-Vehicle-Detection/mobilenet-ssd-predict.ipynb) shows how to use the mobilenet SSD to detect vehicles, as well as the movie processing pipeline. There are more details in the notebook, but the main observations are as follows:
 
-In terms of predicting on the training/validation data from the udacity traffic dataset:
+**Prediction on udacity traffic dataset**
+![](https://github.com/wwymak/udacity-selfdrivingcar-nd/blob/master/CarND-Vehicle-Detection/output_images/1478732080090015975_predicted.jpg)   ![](https://github.com/wwymak/udacity-selfdrivingcar-nd/blob/master/CarND-Vehicle-Detection/output_images/1478895368744352345_predicted.jpg)   
+
+![](https://github.com/wwymak/udacity-selfdrivingcar-nd/blob/master/CarND-Vehicle-Detection/output_images/1478897820720062731_predicted.jpg)   ![](https://github.com/wwymak/udacity-selfdrivingcar-nd/blob/master/CarND-Vehicle-Detection/output_images/1478901524392001997_predicted.jpg)   
+
+![](https://github.com/wwymak/udacity-selfdrivingcar-nd/blob/master/CarND-Vehicle-Detection/output_images/1479498540474511391_predicted.jpg)   ![](https://github.com/wwymak/udacity-selfdrivingcar-nd/blob/master/CarND-Vehicle-Detection/output_images/1479502464744941068_predicted.jpg)
+
+
+**Prediction on the test images**
 
 ![](https://github.com/wwymak/udacity-selfdrivingcar-nd/blob/master/CarND-Vehicle-Detection/output_images/test1_predicted.jpg)   ![](https://github.com/wwymak/udacity-selfdrivingcar-nd/blob/master/CarND-Vehicle-Detection/output_images/test2_predicted.jpg)   
 
