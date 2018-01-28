@@ -1,3 +1,8 @@
+# this script is for training my own SSD network
+# use it like so: `python mobilenet-ssd-training.py`
+# by default it saves the weights every 3 epochs as well as logging output to TensorBoard
+
+# import keras related modules
 from keras.models import Model, load_model
 from keras.layers import Input, Lambda, Conv2D, MaxPooling2D, BatchNormalization, Dense, GlobalAveragePooling2D
 from keras.layers import  Flatten, Reshape, Concatenate, Activation, Dropout
@@ -6,12 +11,15 @@ from keras.callbacks import ModelCheckpoint, EarlyStopping, ReduceLROnPlateau, T
 from keras import backend as K
 from keras.optimizers import Adam
 from keras.preprocessing.image import ImageDataGenerator
+
+# import custom functions from ssd_keras
 from keras_ssd_loss import SSDLoss
 from keras_layer_AnchorBoxes import AnchorBoxes
 from keras_layer_L2Normalization import L2Normalization
 from ssd_box_encode_decode_utils import SSDBoxEncoder, decode_y, decode_y2
 from ssd_batch_generator import BatchGenerator
 
+# import the relevant mobilenet model modules from keras.applications
 from keras.applications.mobilenet import MobileNet, relu6, DepthwiseConv2D
 from keras.applications.mobilenet import _depthwise_conv_block, _conv_block
 
@@ -63,6 +71,7 @@ def mobilenet_model(image_shape, n_classes, input_shape=(128,128,3), l2_reg=0.0,
     for i in aspect_ratios_per_layer:
         n_boxes.append(len(i))
 
+    #definitions for mobilenet
     alpha=1.0
     depth_multiplier=1
     dropout=1e-3
