@@ -61,7 +61,7 @@ much more manageable for a neural network ). The dataset has around 20K images i
 the size of the Pascal dataset, but has more relevant classes (although the Pascal dataset has cars too).
 In the current implementation, I trained the model from scratch over 70 epochs. As mentioned in the paper, data augmentation is
 very important to get good accuracy in training, and I used translation, horizontal flips, brightness variation and scaling for this.
-The code for the training process is 
+The code for the training process is [mobilenet-ssd-training.py](https://github.com/wwymak/udacity-selfdrivingcar-nd/blob/master/CarND-Vehicle-Detection/mobilenet-ssd-training.py)
 
 **Prediction**
 
@@ -70,6 +70,13 @@ The code in [mobilenet-ssd-predict.ipynb](https://github.com/wwymak/udacity-self
 In terms of predicting on the training/validation data from the udacity traffic dataset:
 
 
+|:-------------------------:|:-------------------------:|
+
+|![](https://github.com/wwymak/udacity-selfdrivingcar-nd/blob/master/CarND-Vehicle-Detection/output_images/test1.jpg)  | ![](https://github.com/wwymak/udacity-selfdrivingcar-nd/blob/master/CarND-Vehicle-Detection/output_images/test2.jpg)   |
+
+|![](https://github.com/wwymak/udacity-selfdrivingcar-nd/blob/master/CarND-Vehicle-Detection/output_images/test3.jpg)  | ![](https://github.com/wwymak/udacity-selfdrivingcar-nd/blob/master/CarND-Vehicle-Detection/output_images/test4.jpg)   |
+
+|![](https://github.com/wwymak/udacity-selfdrivingcar-nd/blob/master/CarND-Vehicle-Detection/output_images/test5.jpg)  | ![](https://github.com/wwymak/udacity-selfdrivingcar-nd/blob/master/CarND-Vehicle-Detection/output_images/test6.jpg)   |
 
 #### Results of SSD
 
