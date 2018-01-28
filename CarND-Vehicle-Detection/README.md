@@ -1,4 +1,4 @@
-## Vehicle Detection Project
+# Vehicle Detection Project
 
 The aims of this project is to detect vehicles from a movie shot from the viewpoint of a driver, which is crucial for a self
 driving car to be able to handle road situations. The main task is therefore object detection, which has been a long running computer
@@ -14,7 +14,17 @@ detection models-- Single Shot Multibox Detection. (SSD) The focus of the discus
 
 ---
 
-### Fine tuning Mobilenet, vehicle detection in images with sliding windows
+## Fine tuning Mobilenet, vehicle detection in images with sliding windows
+
+A basic implementation of object detection with CNNs is to split up each image into windows of set sizes, then run a CNN
+trained on detecting cars to run over these windows and classify them as containing a car or not. While I know that this
+method is going to be really slow, I am curious as to how well it would work, and just how well(or badly) would it cope
+with video processing.
+
+I decided to fine tune a pretrianed mobilenet model from the keras library on the cars/not cars dataset provided for the project.
+The code for this is at [mobilenet fine tune.ipynb](https://github.com/wwymak/udacity-selfdrivingcar-nd/blob/master/CarND-Vehicle-Detection/mobilenet%20fine%20tune.ipynb)
+After 50 epochs of training (with data augmentation), the network is able to distinguish between cars and not cars with 99% accuracy.
+
 
 The output video performance is more or less acceptable, detecting the 2 main cars closest to the camera. However, there is still
 a lot of jitter and a few false positives, which could potentially be resolved by experimenting with more window sizes and better/
@@ -22,7 +32,7 @@ more training data. However, the main issue with this approach is the time taken
 
 The output video of this experiment is [here](https://github.com/wwymak/udacity-selfdrivingcar-nd/blob/master/CarND-Vehicle-Detection/outvideo_mobilenet_full.mp4)
 
-### Single Shot MultiBox Detector (SSD)
+## Single Shot MultiBox Detector (SSD)
 
 A fairly recent CNN based object detector is the single shot multiBox detector (ref [here](https://arxiv.org/abs/1512.02325)). It is
 one of the best performing models in terms of speed and accuracy, (in the paper they quoted a value of 59 frames a second, with 79% mean average precision on the object detection/classification task). I decided that this should be a very good method for the
@@ -32,9 +42,10 @@ The structure  of the network is as follows:
 
 ![](https://github.com/wwymak/udacity-selfdrivingcar-nd/blob/master/CarND-Vehicle-Detection/examples/SSD_architecture.png).
 
-The base model of the VGG16 is used to extract features
+The base model of the VGG16 is used to extract features, but rather than passing the features through dense layers, the
+SSD models used convolution layers as
 
-The network presented in the paper is trained on (and evaluated against) the PascalVOC[http://host.robots.ox.ac.uk/pascal/VOC/]
+The network presented in the paper is trained on (and evaluated against) the [PascalVOC](http://host.robots.ox.ac.uk/pascal/VOC/)
 and [COCO](http://cocodataset.org/) datasets. Both the Pascal and COCO datasets has cars among their object detection/classification classes. Therefore, it is entirely possible to use a pretrained network from the paper, filtering on the 'cars' class. However,
 the original implementation of [SSD](https://github.com/weiliu89/caffe/tree/ssd) is in Caffe, and as I am more familiar with Keras, I used the Keras implementation of
 SSD from  https://github.com/pierluigiferrari/ssd_keras instead. Besides very good documnetation and explanation in the code in ssd_keras about how the SSD is reimplementated in Keras, there is also a lot of useful utility classes and layers that makes constructing my onw network easier.
@@ -46,7 +57,7 @@ I tested 2 models on the vehicle detection problem-- one is a smaller network I 
 The training script for the mobilenet ssd is [here](https://github.com/wwymak/udacity-selfdrivingcar-nd/blob/master/CarND-Vehicle-Detection/mobilenet-ssd-training.py) and the
 prediction and movie creation task on this network is [here](https://github.com/wwymak/udacity-selfdrivingcar-nd/blob/master/CarND-Vehicle-Detection/mobilenet-ssd-predict.ipynb)
 
-#### Mobilenet SSD
+### Mobilenet SSD
 As a learning task, I also constructed a SSD network with a mobilenet backend instead of the VGG16 backend.  
 
 The network architecture is shown [here](https://github.com/wwymak/udacity-selfdrivingcar-nd/blob/master/CarND-Vehicle-Detection/mobilenet-architecture.md).
@@ -63,7 +74,7 @@ In the current implementation, I trained the model from scratch over 70 epochs. 
 very important to get good accuracy in training, and I used translation, horizontal flips, brightness variation and scaling for this.
 The code for the training process is [mobilenet-ssd-training.py](https://github.com/wwymak/udacity-selfdrivingcar-nd/blob/master/CarND-Vehicle-Detection/mobilenet-ssd-training.py)
 
-##### Prediction
+#### Prediction
 
 The code in [mobilenet-ssd-predict.ipynb](https://github.com/wwymak/udacity-selfdrivingcar-nd/blob/master/CarND-Vehicle-Detection/mobilenet-ssd-predict.ipynb) shows how to use the mobilenet SSD to detect vehicles, as well as the movie processing pipeline. There are more details in the notebook, but the main observations are as follows:
 
@@ -96,14 +107,13 @@ has more images with cars in shadows, or that it has not learnt to deal with the
 #### Video processing
 
 The video processed using the pretrained SSD300 network is [ssd_300_v1.mp4](https://github.com/wwymak/udacity-selfdrivingcar-nd/blob/master/CarND-Vehicle-Detection/ssd_300_v1.mp4), and
-the video processed using my mobilenet SSD network is [ssd_mobilenet_with_averaging.mp4](https://github.com/wwymak/udacity-selfdrivingcar-nd/blob/master/CarND-Vehicle-Detection/ssd_mobilenet_with_averaging)
+the video processed using my mobilenet SSD network is [ssd_mobilenet_with_averaging.mp4](https://github.com/wwymak/udacity-selfdrivingcar-nd/blob/master/CarND-Vehicle-Detection/ssd_mobilenet_with_averaging.mp4)
 
-As per above discussion, my mobilenet SSD has a tendency to detect false positives in the  In my video processing pipeline,
+For the pretrained SSD300 network, no further processing beyond passing each image from the video into the network is necessary-- I found that while it does not detect the small vehicles in the distance/ at the opposite lane, it does not throw up any false positives, and also tracks the closest cars from frame to frame very smoothly. This is not perhaps not surprising as the pretrained SSD300 has been trained for a much higher number of steps
+compared to my mobilenet SSD, and also has undergone a detailed parameter tuning.
 
- While it does not detect the small vehicles in the distance/ at the opposite lane, it does not throw up any false positives, with no further processing on video frames needed. This is not perhaps not surprising as the pretrained SSD300 has been trained for a much higher number of steps
-compared to my mobilenet SSD, and also has undergone a detailed parameter tuning (e.g. the different box scales).
-
-My own
+For the mobilenet SSD, I implemented an 'averaging' over 25 frames. In the video processing pipeline, the boxes from the last 25 frames
+are added to a list, and a 'heatmap' constructed out of these boxes. Only areas occurs in more than 15 frames out of 25 is assigned to the final box for a car (I used 15 as it seems to have the best tradeoff between removing false positives and ensuring that the detection for the closest cars don't lag)
 
 Performance wise, the movie prediction pipeline takes approx 2-3 mins for 50s of video. The video has a frame rate of 25fps, if we ignore the other non-SSD processing required for each frame(e.g. the image resizes, averaging calculations, etc), the network is
 running at 7 frames per second. With further optimsation of the processing pipeline so there is less out of GPU operations
@@ -119,3 +129,5 @@ data augmentation techniques, etc.
 a SSD network, as well as explore other recent developments, e.g. the YOLO9000 architecture.
 
 - explore semantic segmentation (a good overview of this [here](http://blog.qure.ai/notes/semantic-segmentation-deep-learning-review)), detecting the actual cars's shape as opposed to a bounding box, and using this to assign pixels in a video frame to different objects, such as lane lines, cars, traffic signs etc
+
+<small>Note: the `keras_ssd*.py`, `keras_layer_*.py` files are from the [ssd_keras project](https://github.com/pierluigiferrari/ssd_keras)</small>
