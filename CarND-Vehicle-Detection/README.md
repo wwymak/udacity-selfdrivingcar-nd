@@ -25,6 +25,8 @@ I decided to fine tune a pretrianed mobilenet model from the keras library on th
 The code for this is at [mobilenet fine tune.ipynb](https://github.com/wwymak/udacity-selfdrivingcar-nd/blob/master/CarND-Vehicle-Detection/mobilenet%20fine%20tune.ipynb)
 After 50 epochs of training (with data augmentation), the network is able to distinguish between cars and not cars with 99% accuracy.
 
+The code for the prediction task is at [mobilenet-predict-windows.ipynb](https://github.com/wwymak/udacity-selfdrivingcar-nd/blob/master/CarND-Vehicle-Detection/mobilenet-predict-windows.ipynb)
+
 
 The output video performance is more or less acceptable, detecting the 2 main cars closest to the camera. However, there is still
 a lot of jitter and a few false positives, which could potentially be resolved by experimenting with more window sizes and better/
@@ -33,6 +35,8 @@ more training data. However, the main issue with this approach is the time taken
 The output video of this experiment is [here](https://github.com/wwymak/udacity-selfdrivingcar-nd/blob/master/CarND-Vehicle-Detection/outvideo_mobilenet_full.mp4)
 
 This is produced without the 'averaging' technique discussed below. However, the computation for the process without the averaging was so long that I had issues with completing the movie processing without the script crashing...
+
+---
 
 ## Single Shot MultiBox Detector (SSD)
 
