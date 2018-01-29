@@ -105,7 +105,7 @@ very important to get good accuracy in training, and I used translation, horizon
 
 The code for the training process is [mobilenet-ssd-training.py](https://github.com/wwymak/udacity-selfdrivingcar-nd/blob/master/CarND-Vehicle-Detection/mobilenet-ssd-training.py) , with an notebook with more or less the same code but a bit more discussion in [mobilenet-ssd-training.ipynb](https://github.com/wwymak/udacity-selfdrivingcar-nd/blob/master/CarND-Vehicle-Detection/mobilenet-ssd-training.ipynb)
 and the
-prediction and movie creation task on this network is [here](https://github.com/wwymak/udacity-selfdrivingcar-nd/blob/master/CarND-Vehicle-Detection/mobilenet-ssd-predict.ipynb)
+prediction and movie creation task on this network is [mobilenet-ssd-predict.ipynb](https://github.com/wwymak/udacity-selfdrivingcar-nd/blob/master/CarND-Vehicle-Detection/mobilenet-ssd-predict.ipynb)
 
 #### Prediction
 
@@ -146,7 +146,7 @@ For the pretrained SSD300 network, no further processing beyond passing each ima
 compared to my mobilenet SSD, and also has undergone a detailed parameter tuning.
 
 For the mobilenet SSD, I implemented an 'averaging' over 25 frames. In the video processing pipeline, the boxes from the last 25 frames
-are added to a list, and a 'heatmap' constructed out of these boxes. Only areas occurs in more than 15 frames out of 25 is assigned to the final box for a car (I used 15 as it seems to have the best tradeoff between removing false positives and ensuring that the detection for the closest cars don't lag)
+are added to a list, and a 'heatmap' constructed out of these boxes. (pretty much the same as the heatmap method I used above on the 'sliding windows' prediction above. Only areas occurs in more than 15 frames out of 25 is assigned to the final box for a car (I used 15 as it seems to have the best tradeoff between removing false positives and ensuring that the detection for the closest cars don't lag)
 
 Performance wise, the movie prediction pipeline takes approx 2-3 mins for 50s of video. The video has a frame rate of 25fps, if we ignore the other non-SSD processing required for each frame(e.g. the image resizes, averaging calculations, etc), the network is
 running at 7 frames per second. With further optimsation of the processing pipeline so there is less out of GPU operations
