@@ -62,13 +62,11 @@ I tested 2 models on the vehicle detection problem-- one is a smaller network I 
 4 classification + 4 bounding box detection layers branching off from the last 4 conv blocks, and also the full SSD300 network
 (using the pretrained weights)
 
-The training script for the mobilenet ssd is [here](https://github.com/wwymak/udacity-selfdrivingcar-nd/blob/master/CarND-Vehicle-Detection/mobilenet-ssd-training.py) and the
-prediction and movie creation task on this network is [here](https://github.com/wwymak/udacity-selfdrivingcar-nd/blob/master/CarND-Vehicle-Detection/mobilenet-ssd-predict.ipynb)
 
 ### Mobilenet SSD
 As a learning task, I constructed a SSD network with a mobilenet backend instead of the VGG16 backend.  
 
-The network architecture is shown [here](https://github.com/wwymak/udacity-selfdrivingcar-nd/blob/master/CarND-Vehicle-Detection/mobilenet-architecture.md).
+The network architecture is shown in  [mobilenet-architecture.md](https://github.com/wwymak/udacity-selfdrivingcar-nd/blob/master/CarND-Vehicle-Detection/mobilenet-architecture.md).
 
 It uses [mobilenet](https://arxiv.org/pdf/1704.04861.pdf) as the feature extractor, and the output from the last 4 pointwise conv layers (after relu activation) is fed into the object classifier and the box classifiers for object detection. I chose mobilenet as
 a base as mobilenets are optimsed to be more efficient in terms of computing time and is also less memory intense. This is
@@ -80,7 +78,10 @@ much more manageable for a neural network ). The dataset has around 20K images i
 the size of the Pascal dataset, but has more relevant classes (although the Pascal dataset has cars too).
 In the current implementation, I trained the model from scratch over 70 epochs. As mentioned in the paper, data augmentation is
 very important to get good accuracy in training, and I used translation, horizontal flips, brightness variation and scaling for this.
-The code for the training process is [mobilenet-ssd-training.py](https://github.com/wwymak/udacity-selfdrivingcar-nd/blob/master/CarND-Vehicle-Detection/mobilenet-ssd-training.py)
+
+The code for the training process is [mobilenet-ssd-training.py](https://github.com/wwymak/udacity-selfdrivingcar-nd/blob/master/CarND-Vehicle-Detection/mobilenet-ssd-training.py) , with an notebook with more or less the same code but a bit more discussion in [mobilenet-ssd-training.ipynb](https://github.com/wwymak/udacity-selfdrivingcar-nd/blob/master/CarND-Vehicle-Detection/mobilenet-ssd-training.ipynb)
+and the
+prediction and movie creation task on this network is [here](https://github.com/wwymak/udacity-selfdrivingcar-nd/blob/master/CarND-Vehicle-Detection/mobilenet-ssd-predict.ipynb)
 
 #### Prediction
 
