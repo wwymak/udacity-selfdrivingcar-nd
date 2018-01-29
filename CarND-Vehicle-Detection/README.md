@@ -29,13 +29,25 @@ After 50 epochs of training (with data augmentation), the network is able to dis
 (note, the network uses a yes/no binary classification, and cars are class 0, so a confident prediction of an image is a car will be
     very close to zero )
 
-Cars class:
+Cars example images + prediction values:
 
 ![](https://github.com/wwymak/udacity-selfdrivingcar-nd/blob/master/CarND-Vehicle-Detection/output_images/cars_inputs.png)![](https://github.com/wwymak/udacity-selfdrivingcar-nd/blob/master/CarND-Vehicle-Detection/output_images/cars_prediction.png)
 
-Non cars class:
+Non cars example images + prediction values:
 
 ![](https://github.com/wwymak/udacity-selfdrivingcar-nd/blob/master/CarND-Vehicle-Detection/output_images/notcars_inputs.png) ![](https://github.com/wwymak/udacity-selfdrivingcar-nd/blob/master/CarND-Vehicle-Detection/output_images/notcars_prediction.png)
+
+#### Sliding windows prediction
+
+I divided up the image into 'windows' of different sizes, and used the trained network to predict if the windows contain a car or not.
+The output of this task is shown below, with the blue boxes being where the network predicts a prescene of a car. (note the processing time... almost 30s for 6 images-- far too slow for real time detection)
+
+![](https://github.com/wwymak/udacity-selfdrivingcar-nd/blob/master/CarND-Vehicle-Detection/output_images/sliding_windows_boxes.png)
+
+These boxes are then combined using a heatmap method, so areas of overlap are combined into one bounding box.
+
+![](https://github.com/wwymak/udacity-selfdrivingcar-nd/blob/master/CarND-Vehicle-Detection/output_images/heatmap.png)![](https://github.com/wwymak/udacity-selfdrivingcar-nd/blob/master/CarND-Vehicle-Detection/output_images/final_output.png)
+
 
 The code for the prediction task is at [mobilenet-predict-windows.ipynb](https://github.com/wwymak/udacity-selfdrivingcar-nd/blob/master/CarND-Vehicle-Detection/mobilenet-predict-windows.ipynb)
 
