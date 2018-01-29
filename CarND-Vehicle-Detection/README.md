@@ -2,7 +2,7 @@
 
 The aims of this project is to detect vehicles from a movie shot from the viewpoint of a driver, which is crucial for a self
 driving car to be able to handle road situations. The main task is therefore object detection, which has been a long running computer
-vision research topic.
+vision research topic. The final output video is done using a neural network based solution(Single Shot Multibox Detector) -- there are two videos as one is produced using a pretrained network (shouldn't I be doing a bit more work? :wink: ) and one using my own trained SSD with a slightly different architecture.
 
 In the project rubric for udacity, it calls for using Histogram of Oriented Gradients (HOG) method to extract features and
 run a classifier for object detection. However, this is a rather old method that newer deep learning/CNN based models has mostly replaced.
