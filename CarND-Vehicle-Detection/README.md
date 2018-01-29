@@ -22,7 +22,7 @@ method is going to be really slow, I am curious as to how well it would work, an
 with video processing.
 
 I decided to fine tune a pretrianed mobilenet model from the keras library on the cars/not cars dataset provided for the project.
-The code for this is at [mobilenet fine tune.ipynb](https://github.com/wwymak/udacity-selfdrivingcar-nd/blob/master/CarND-Vehicle-Detection/mobilenet%20fine%20tune.ipynb)
+The architecture of this network is shown in [mobilenet-sliding-windows-architecture.md](https://github.com/wwymak/udacity-selfdrivingcar-nd/blob/master/CarND-Vehicle-Detection/mobilenet-sliding-windows-architecture.md) and the code for the training is at [mobilenet fine tune.ipynb](https://github.com/wwymak/udacity-selfdrivingcar-nd/blob/master/CarND-Vehicle-Detection/mobilenet%20fine%20tune.ipynb)
 After 50 epochs of training (with data augmentation), the network is able to distinguish between cars and not cars with 99% accuracy.
 
 #### Sample predictions:
