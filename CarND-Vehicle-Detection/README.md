@@ -32,6 +32,8 @@ more training data. However, the main issue with this approach is the time taken
 
 The output video of this experiment is [here](https://github.com/wwymak/udacity-selfdrivingcar-nd/blob/master/CarND-Vehicle-Detection/outvideo_mobilenet_full.mp4)
 
+This is produced without the 'averaging' technique discussed below. However, the computation for the process without the averaging was so long that I had issues with completing the movie processing without the script crashing...
+
 ## Single Shot MultiBox Detector (SSD)
 
 A fairly recent CNN based object detector is the single shot multiBox detector (ref [here](https://arxiv.org/abs/1512.02325)). It is
@@ -43,7 +45,9 @@ The structure  of the network is as follows:
 ![](https://github.com/wwymak/udacity-selfdrivingcar-nd/blob/master/CarND-Vehicle-Detection/examples/SSD_architecture.png).
 
 The base model of the VGG16 is used to extract features, but rather than passing the features through dense layers, the
-SSD models used convolution layers as
+SSD models used convolution layers to predict both the classes and the bounding boxes (SSD's bounding box predictor is not
+class specific). As shown in the diagram,
+features from different conv layers are fed into the prediction layers so the network can detect features at different scales.
 
 The network presented in the paper is trained on (and evaluated against) the [PascalVOC](http://host.robots.ox.ac.uk/pascal/VOC/)
 and [COCO](http://cocodataset.org/) datasets. Both the Pascal and COCO datasets has cars among their object detection/classification classes. Therefore, it is entirely possible to use a pretrained network from the paper, filtering on the 'cars' class. However,
@@ -58,7 +62,7 @@ The training script for the mobilenet ssd is [here](https://github.com/wwymak/ud
 prediction and movie creation task on this network is [here](https://github.com/wwymak/udacity-selfdrivingcar-nd/blob/master/CarND-Vehicle-Detection/mobilenet-ssd-predict.ipynb)
 
 ### Mobilenet SSD
-As a learning task, I also constructed a SSD network with a mobilenet backend instead of the VGG16 backend.  
+As a learning task, I constructed a SSD network with a mobilenet backend instead of the VGG16 backend.  
 
 The network architecture is shown [here](https://github.com/wwymak/udacity-selfdrivingcar-nd/blob/master/CarND-Vehicle-Detection/mobilenet-architecture.md).
 

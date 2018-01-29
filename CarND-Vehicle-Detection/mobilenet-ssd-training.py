@@ -295,7 +295,8 @@ n_train_samples = train_dataset.get_n_samples()
 n_val_samples = val_dataset.get_n_samples()
 
 epochs = 30
-
+#fit in batches, logs training with Tensorboard. Also save model checkpoint per epcoh and applies early stopping if validation
+# loss doesn't decrease after 4 epochs 
 history = model.fit_generator(generator = train_generator,
                               steps_per_epoch = (n_train_samples//batch_size),
                               epochs = epochs,
