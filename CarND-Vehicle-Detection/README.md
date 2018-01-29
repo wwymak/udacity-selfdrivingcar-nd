@@ -25,6 +25,18 @@ I decided to fine tune a pretrianed mobilenet model from the keras library on th
 The code for this is at [mobilenet fine tune.ipynb](https://github.com/wwymak/udacity-selfdrivingcar-nd/blob/master/CarND-Vehicle-Detection/mobilenet%20fine%20tune.ipynb)
 After 50 epochs of training (with data augmentation), the network is able to distinguish between cars and not cars with 99% accuracy.
 
+#### Sample predictions:
+(note, the network uses a yes/no binary classification, and cars are class 0, so a confident prediction of an image is a car will be
+    very close to zero )
+
+Cars class:
+
+[](https://github.com/wwymak/udacity-selfdrivingcar-nd/blob/master/CarND-Vehicle-Detection/output_images/cars_inputs.png) ![](https://github.com/wwymak/udacity-selfdrivingcar-nd/blob/master/CarND-Vehicle-Detection/output_images/cars_prediction.png)
+
+Non cars class:
+
+![](https://github.com/wwymak/udacity-selfdrivingcar-nd/blob/master/CarND-Vehicle-Detection/output_images/notcars_inputs.png) ![](https://github.com/wwymak/udacity-selfdrivingcar-nd/blob/master/CarND-Vehicle-Detection/output_images/notcars_prediction.png)
+
 The code for the prediction task is at [mobilenet-predict-windows.ipynb](https://github.com/wwymak/udacity-selfdrivingcar-nd/blob/master/CarND-Vehicle-Detection/mobilenet-predict-windows.ipynb)
 
 
