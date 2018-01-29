@@ -31,7 +31,7 @@ After 50 epochs of training (with data augmentation), the network is able to dis
 
 Cars class:
 
-[](https://github.com/wwymak/udacity-selfdrivingcar-nd/blob/master/CarND-Vehicle-Detection/output_images/cars_inputs.png) ![](https://github.com/wwymak/udacity-selfdrivingcar-nd/blob/master/CarND-Vehicle-Detection/output_images/cars_prediction.png)
+![](https://github.com/wwymak/udacity-selfdrivingcar-nd/blob/master/CarND-Vehicle-Detection/output_images/cars_inputs.png)![](https://github.com/wwymak/udacity-selfdrivingcar-nd/blob/master/CarND-Vehicle-Detection/output_images/cars_prediction.png)
 
 Non cars class:
 
