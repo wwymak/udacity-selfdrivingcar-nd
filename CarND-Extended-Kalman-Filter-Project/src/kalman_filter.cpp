@@ -7,8 +7,6 @@ using namespace std;
 using Eigen::MatrixXd;
 using Eigen::VectorXd;
 
-Tools tools;
-
 // Please note that the Eigen library does not initialize 
 // VectorXd or MatrixXd objects with zeros upon creation.
 
@@ -44,11 +42,11 @@ void KalmanFilter::Update(const VectorXd &z) {
     MatrixXd I = MatrixXd::Identity(xsize, xsize);
 
     VectorXd y = z - H_ * x_;
-    MatrixXd S = H_ * P_ * H_.transpose();
+    MatrixXd S = H_ * P_ * H_.transpose() + R_;
     //Kalman gain
-    MatrixXd K = P_ * H_.transpose();
+    MatrixXd K = P_ * H_.transpose() * S.inverse();
 
-    x_ = x_ + K * y;
+    x_ = x_ + (K * y);
     P_ = (I - K * H_) * P_;
 }
 
@@ -60,19 +58,21 @@ void KalmanFilter::UpdateEKF(const VectorXd &z) {
     VectorXd h(3);
 
     const double pi = acos(-1);
+    cout << pi<< endl;
 
     float px = x_(0);
     float py = x_(1);
     float vx = x_(2);
     float vy = x_(3);
 
+    float rho = sqrt(pow(px, 2) + pow(py, 2));
+    float theta = atan2(py , px);
+    float rho_dot = (px * vx + py * vy)/rho;
+
     float p_mag2 = pow(px, 2) + pow(py, 2);
-    float p_mag = pow(p_mag2, 0.5);
+    double p_mag = sqrt(p_mag2);
 
-    h(0) = p_mag;
-    h(1) = atan2(py , px);
-    h(2) = (px * vx + py * vy)/p_mag;
-
+    h << rho, theta, rho_dot;
     long xsize = x_.size();
     //identity matrix
     MatrixXd I = MatrixXd::Identity(xsize, xsize);
@@ -85,12 +85,13 @@ void KalmanFilter::UpdateEKF(const VectorXd &z) {
         y(1) += 2 * pi;
     }
 
-    MatrixXd S = H_ * P_ * H_.transpose();
+    MatrixXd S = H_ * P_ * H_.transpose() + R_;
     //Kalman gain
-    MatrixXd K = P_ * H_.transpose();
+    MatrixXd K = P_ * H_.transpose() * S.inverse();
 
     x_ = x_ + K * y;
     P_ = (I - K * H_) * P_;
+
 
 
 }
