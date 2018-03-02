@@ -58,7 +58,6 @@ void KalmanFilter::UpdateEKF(const VectorXd &z) {
     VectorXd h(3);
 
     const double pi = acos(-1);
-    cout << pi<< endl;
 
     float px = x_(0);
     float py = x_(1);
