@@ -1,4 +1,5 @@
 #include <uWS/uWS.h>
+#include <fstream>
 #include <iostream>
 #include "json.hpp"
 #include <math.h>
@@ -28,36 +29,38 @@ std::string hasData(std::string s) {
 
 int main()
 {
-  uWS::Hub h;
+    ofstream logfile;
+    logfile.open("ekf_outputs.csv");
+    logfile << "x_gt, y_gt, vx_gt, vy_gt, p_x, p_y, vx, vy, RMSE_x, RMSE_y, RMSE_vx , RMSE_vy, \n ";
+    uWS::Hub h;
 
-  // Create a Kalman Filter instance
-  FusionEKF fusionEKF;
+    // Create a Kalman Filter instance
+    FusionEKF fusionEKF;
 
   // used to compute the RMSE later
-  Tools tools;
-  vector<VectorXd> estimations;
-  vector<VectorXd> ground_truth;
+    Tools tools;
+    vector<VectorXd> estimations;
+    vector<VectorXd> ground_truth;
 
-  h.onMessage([&fusionEKF,&tools,&estimations,&ground_truth](uWS::WebSocket<uWS::SERVER> ws, char *data, size_t length, uWS::OpCode opCode) {
+    h.onMessage([&fusionEKF,&tools,&estimations,&ground_truth, &logfile](uWS::WebSocket<uWS::SERVER> ws, char *data, size_t length, uWS::OpCode opCode) {
     // "42" at the start of the message means there's a websocket message event.
     // The 4 signifies a websocket message
     // The 2 signifies a websocket event
 
-    if (length && length > 2 && data[0] == '4' && data[1] == '2')
-    {
+        if (length && length > 2 && data[0] == '4' && data[1] == '2') {
 
-      auto s = hasData(std::string(data));
-      if (s != "") {
+            auto s = hasData(std::string(data));
+            if (s != "") {
       	
-        auto j = json::parse(s);
+                auto j = json::parse(s);
 
-        std::string event = j[0].get<std::string>();
+                std::string event = j[0].get<std::string>();
         
-        if (event == "telemetry") {
+                if (event == "telemetry") {
           // j[1] is the data JSON object
           
-          string sensor_measurment = j[1]["sensor_measurement"];
-          
+                    string sensor_measurment = j[1]["sensor_measurement"];
+
           MeasurementPackage meas_package;
           istringstream iss(sensor_measurment);
     	  long long timestamp;
@@ -125,7 +128,8 @@ int main()
     	  estimations.push_back(estimate);
 
     	  VectorXd RMSE = tools.CalculateRMSE(estimations, ground_truth);
-
+        logfile << x_gt <<"," << y_gt <<"," <<vx_gt<<"," <<vy_gt<<","<< p_x<<","
+                << p_y<<","<< v1 <<","<<v2<<"," <<RMSE(0)<<","<< RMSE(1)<<","<< RMSE(2)<< ","<< RMSE(3)<< ",\n" ;
           json msgJson;
           msgJson["estimate_x"] = p_x;
           msgJson["estimate_y"] = p_y;
@@ -136,8 +140,9 @@ int main()
           auto msg = "42[\"estimate_marker\"," + msgJson.dump() + "]";
           // std::cout << msg << std::endl;
           ws.send(msg.data(), msg.length(), uWS::OpCode::TEXT);
-	  
-        }
+
+
+                }
       } else {
         
         std::string msg = "42[\"manual\",{}]";
@@ -149,27 +154,25 @@ int main()
 
   // We don't need this since we're not using HTTP but if it's removed the program
   // doesn't compile :-(
-  h.onHttpRequest([](uWS::HttpResponse *res, uWS::HttpRequest req, char *data, size_t, size_t) {
-    const std::string s = "<h1>Hello world!</h1>";
-    if (req.getUrl().valueLength == 1)
-    {
-      res->end(s.data(), s.length());
-    }
-    else
-    {
-      // i guess this should be done more gracefully?
-      res->end(nullptr, 0);
-    }
-  });
+    h.onHttpRequest([](uWS::HttpResponse *res, uWS::HttpRequest req, char *data, size_t, size_t) {
+        const std::string s = "<h1>Hello world!</h1>";
+        if (req.getUrl().valueLength == 1){
+            res->end(s.data(), s.length());
+        } else {
+            // i guess this should be done more gracefully?
+            res->end(nullptr, 0);
+        }
+    });
 
-  h.onConnection([&h](uWS::WebSocket<uWS::SERVER> ws, uWS::HttpRequest req) {
-    std::cout << "Connected!!!" << std::endl;
-  });
+    h.onConnection([&h, &logfile](uWS::WebSocket<uWS::SERVER> ws, uWS::HttpRequest req) {
+        std::cout << "Connected!!!" << std::endl;
+    });
 
-  h.onDisconnection([&h](uWS::WebSocket<uWS::SERVER> ws, int code, char *message, size_t length) {
-    ws.close();
-    std::cout << "Disconnected" << std::endl;
-  });
+    h.onDisconnection([&h, &logfile](uWS::WebSocket<uWS::SERVER> ws, int code, char *message, size_t length) {
+        ws.close();
+        std::cout << "Disconnected" << std::endl;
+        logfile.close();
+    });
 
   int port = 4567;
   if (h.listen(port))
@@ -182,4 +185,5 @@ int main()
     return -1;
   }
   h.run();
+
 }
