@@ -129,7 +129,7 @@ int main()
 
     	  VectorXd RMSE = tools.CalculateRMSE(estimations, ground_truth);
         logfile << x_gt <<"," << y_gt <<"," <<vx_gt<<"," <<vy_gt<<","<< p_x<<","
-                << p_y<<","<< v1 <<","<<v2<<"," <<RMSE(0)<<","<< RMSE(1)<<","<< RMSE(2)<< ","<< RMSE(3)<< ",\n" ;
+                << p_y<<","<< v1 <<","<<v2<<"," <<RMSE(0)<<","<< RMSE(1)<<","<< RMSE(2)<< ","<< RMSE(3)<< "\n" ;
           json msgJson;
           msgJson["estimate_x"] = p_x;
           msgJson["estimate_y"] = p_y;
