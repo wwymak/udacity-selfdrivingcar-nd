@@ -85,6 +85,7 @@ void UKF::ProcessMeasurement(MeasurementPackage meas_package) {
   */
     if (!is_initialized_) {
         //todo initialisationmkdi
+        P_ = MatrixXd::Identity(5,5);
 
         if (meas_package.sensor_type_ == MeasurementPackage::RADAR) {
             /**
@@ -102,10 +103,13 @@ void UKF::ProcessMeasurement(MeasurementPackage meas_package) {
             /**
             Initialize state.
             */
-//            ekf_.x_(0) = meas_package.raw_measurements_(0);
-//            ekf_.x_(1) = meas_package.raw_measurements_(1);
-//            ekf_.x_(2) = 0;
-//            ekf_.x_(3) = 0;
+            double px = meas_package.raw_measurements_(0);
+            double py = meas_package.raw_measurements_(1);
+            double v = 0.5;
+            double yaw = 0.5;
+            double yawdot = 0;
+
+            x_ << px, py, v, yaw, yawdot;
 
         }
         time_us_ =  meas_package.timestamp_;
@@ -202,6 +206,10 @@ MatrixXd UKF::PredictSigmaPoints(double delta_t) {
     return Xsigma_pred;
 }
 
+//void PredictMeanAndCovariance() {
+//
+//}
+
 /**
  * Predicts sigma points, the state, and the state covariance matrix.
  * @param {double} delta_t the change in time (in seconds) between the last
@@ -214,7 +222,27 @@ void UKF::Prediction(double delta_t) {
     Complete this function! Estimate the object's location. Modify the state
     vector, x_. Predict sigma points, the state, and the state covariance matrix.
     */
-    MatrixXd Xsig = GenerateAugmentedSigmaPoints();
+    Xsig_pred_ = PredictSigmaPoints(delta_t);
+
+    //create vector for weights
+    weights_ = VectorXd(2 * n_aug_+1);
+
+
+    //weights
+    weights_.fill(0.5 / (lambda_ + n_aug_));
+    weights_(0) = lambda_ / (lambda_ + n_aug_);
+
+    //predicted mean
+    for (int i = 0; i< 2 * n_aug_ +1; i++){
+        x_ = x_ + weights_(i) * Xsig_pred_.col(i);
+    }
+
+
+    for (int i = 0; i< 2 * n_aug_ +1; i++){
+        VectorXd xdiff = Xsig_pred_.col(i) - x_;
+        P_ = P_ + weights_(i) * (Xsig_pred_.col(i) - x_) * (Xsig_pred_.col(i) - x_).transpose();
+    }
+
 
 }
 
