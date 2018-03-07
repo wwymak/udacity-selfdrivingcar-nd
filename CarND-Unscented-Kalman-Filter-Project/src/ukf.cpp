@@ -62,6 +62,8 @@ UKF::UKF() {
     // Radar measurement noise standard deviation radius change in m/s
     std_radrd_ = 0.3;
     //DO NOT MODIFY measurement noise values above these are provided by the sensor manufacturer.
+
+    previous_timestamp_ = 0;
     //todo figure out what this is
     ///* time when the state is true, in us
     time_us_ = 0;
@@ -112,18 +114,18 @@ void UKF::ProcessMeasurement(MeasurementPackage meas_package) {
             x_ << px, py, v, yaw, yawdot;
 
         }
-        time_us_ =  meas_package.timestamp_;
+        previous_timestamp_ =  meas_package.timestamp_;
         // done initializing, no need to predict or update
         is_initialized_ = true;
         return;
     } else {
-        double dt = (meas_package.timestamp_ - time_us_) / 1000000.0;
+        double dt = (meas_package.timestamp_ - previous_timestamp_) / 1000000.0;
         double dt2 = pow(dt, 2);
         double dt3 = pow(dt, 3);
         double dt4 = pow(dt, 4);
 
         //update timestamps
-        time_us_ =  meas_package.timestamp_;
+        previous_timestamp_ =  meas_package.timestamp_;
         
         Prediction(dt);
 
@@ -243,7 +245,6 @@ void UKF::Prediction(double delta_t) {
         P_ = P_ + weights_(i) * (Xsig_pred_.col(i) - x_) * (Xsig_pred_.col(i) - x_).transpose();
     }
 
-
 }
 
 /**
@@ -251,14 +252,28 @@ void UKF::Prediction(double delta_t) {
  * @param {MeasurementPackage} meas_package
  */
 void UKF::UpdateLidar(MeasurementPackage meas_package) {
-  /**
-  TODO:
 
-  Complete this function! Use lidar data to update the belief about the object's
-  position. Modify the state vector, x_, and covariance, P_.
+    /**
+     * the lidar is a linear upate so can use the normal kalman filter upate here
+    */
+    MatrixXd H_laser_ = MatrixXd(2,5);
+    H_laser_ << 1, 0, 0, 0, 0,
+               0, 1, 0, 0,0;
+    MatrixXd R_laser_ = MatrixXd(2,2);
+    R_laser_ << 0.0225, 0,
+            0, 0.0225;
 
-  You'll also need to calculate the lidar NIS.
-  */
+    long xsize = x_.size();
+    //identity matrix
+    MatrixXd I = MatrixXd::Identity(xsize, xsize);
+
+    VectorXd y = meas_package.raw_measurements_ - H_laser_ * x_;
+    MatrixXd S = H_laser_ * P_ * H_laser_.transpose() + R_laser_;
+    //Kalman gain
+    MatrixXd K = P_ * H_laser_.transpose() * S.inverse();
+
+    x_ = x_ + (K * y);
+    P_ = (I - K * H_laser_) * P_;
 }
 
 /**
@@ -274,4 +289,48 @@ void UKF::UpdateRadar(MeasurementPackage meas_package) {
 
   You'll also need to calculate the radar NIS.
   */
+    //   Predict measuremnet sigma points for radar (ie put previous predicte sigma points into measruement space
+
+    //matrix for sigma points in measurement space
+
+    //dimensions of measurement for radar
+    int n_z = 3; //since radar has rho, theta and rho_dot as dimensions
+    MatrixXd Zsig = MatrixXd(n_z, 2 * n_aug + 1);
+
+    //mean predicted measurement
+    VectorXd z_pred = VectorXd(n_z);
+
+    //measurement covariance matrix S
+    MatrixXd S = MatrixXd(n_z, n_z);
+
+    for (int i = 0; i< 2 * n_aug_ + 1;  i++) {
+        VectorXd xk = Xsig_pred_.col(i);
+        double px = xk(0);
+        double py = xk(1);
+        double v = xk(2);
+        double yaw = xk(3);
+        double yawdot = xk(4);
+
+        double rho_meas;
+        double  theta_meas;
+        double rho_dot_meas;
+
+        rho_meas = sqrt(pow(px, 2) + pow(py, 2));
+        // if(rho_meas < 0.0001) {
+        //     return
+        // }
+        theta_meas =  atan2(py, px);
+
+        double pi = acos(-1);
+        while (theta_meas > pi) {
+            theta_meas -= 2 * pi;
+        }
+        while (theta_meas < -pi) {
+            theta_meas += 2 * pi;
+        }
+
+        rho_dot_meas =  (px * cos(yaw) * v + py * sin(yaw) * v) / rho_meas;
+
+        Zsig.col(i) << rho_meas, theta_meas , rho_dot_meas;
+    }
 }
