@@ -4,6 +4,7 @@
 #include "measurement_package.h"
 #include "Eigen/Dense"
 #include <vector>
+#include <tuple>
 #include <string>
 #include <fstream>
 
@@ -90,12 +91,15 @@ public:
     MatrixXd GenerateAugmentedSigmaPoints();
 
     MatrixXd PredictSigmaPoints(double delta_t);
+
+    std::tuple<VectorXd, MatrixXd> PredictMeanAndCovariance(MatrixXd Xsigma_pred);
     /**
      * Prediction Predicts sigma points, the state, and the state covariance
      * matrix
      * @param delta_t Time between k and k+1 in s
      */
     void Prediction(double delta_t);
+
 
     /**
      * Updates the state and the state covariance matrix using a laser measurement

@@ -1,6 +1,7 @@
 #include "ukf.h"
 #include "Eigen/Dense"
 #include <iostream>
+#include <tuple>
 
 using namespace std;
 using Eigen::MatrixXd;
@@ -93,13 +94,15 @@ void UKF::ProcessMeasurement(MeasurementPackage meas_package) {
             /**
             Convert radar from polar to cartesian coordinates and initialize state.
             */
-//            double rho = meas_package.raw_measurements_(0);
-//            double theta = meas_package.raw_measurements_(1);
-//            double rho_dot = meas_package.raw_measurements_(2);
+            double rho = meas_package.raw_measurements_(0);
+            double theta = meas_package.raw_measurements_(1);
+            double rho_dot = meas_package.raw_measurements_(2);
 //            x_(0) = rho * cos(theta);
 //            x_(1) = rho * sin(theta);
 //            x_(2) = rho_dot * cos(theta);
 //            x_(3) = rho_dot * sin(theta);
+
+            x_ << rho * cos(theta), rho * sin(theta), rho_dot, rho, 0;
         }
         else if (meas_package.sensor_type_ == MeasurementPackage::LASER) {
             /**
@@ -116,13 +119,16 @@ void UKF::ProcessMeasurement(MeasurementPackage meas_package) {
         }
         previous_timestamp_ =  meas_package.timestamp_;
         // done initializing, no need to predict or update
+
+        //vector for weights
+        weights_ = VectorXd(2 * n_aug_+1);
+        //weights
+        weights_.fill(0.5 / (lambda_ + n_aug_));
+        weights_(0) = lambda_ / (lambda_ + n_aug_);
         is_initialized_ = true;
         return;
     } else {
         double dt = (meas_package.timestamp_ - previous_timestamp_) / 1000000.0;
-        double dt2 = pow(dt, 2);
-        double dt3 = pow(dt, 3);
-        double dt4 = pow(dt, 4);
 
         //update timestamps
         previous_timestamp_ =  meas_package.timestamp_;
@@ -208,9 +214,35 @@ MatrixXd UKF::PredictSigmaPoints(double delta_t) {
     return Xsigma_pred;
 }
 
-//void PredictMeanAndCovariance() {
-//
-//}
+std::tuple<VectorXd, MatrixXd> UKF::PredictMeanAndCovariance(MatrixXd Xsigma_pred) {
+    //predicted state
+    VectorXd x = VectorXd(n_x_);
+    x.setZero();
+    //preicte covariance matrix
+    MatrixXd P = MatrixXd(n_x_, n_x_);
+    P.setZero();
+
+    //predicte state
+    for (int i = 0; i < 2* n_aug_ +1; i++) {
+        x = x + weights_(i) * Xsigma_pred.col(i);
+    }
+    //predicted covariance matrix:
+    for (int i = 0; i < 2* n_aug_ +1; i++) {
+        VectorXd xdiff = Xsigma_pred.col(i) - x;
+        //angle normalisation
+        while (xdiff(3)> M_PI) {
+            xdiff(3) -= 2.* M_PI;
+        };
+        while (xdiff(3)<-M_PI) {
+            xdiff(3) += 2.* M_PI;
+        };
+
+        P = P + weights_(i) * xdiff * xdiff.transpose();
+    }
+
+    return std::make_tuple(x, P);
+
+}
 
 /**
  * Predicts sigma points, the state, and the state covariance matrix.
@@ -226,24 +258,11 @@ void UKF::Prediction(double delta_t) {
     */
     Xsig_pred_ = PredictSigmaPoints(delta_t);
 
-    //create vector for weights
-    weights_ = VectorXd(2 * n_aug_+1);
-
-
-    //weights
-    weights_.fill(0.5 / (lambda_ + n_aug_));
-    weights_(0) = lambda_ / (lambda_ + n_aug_);
 
     //predicted mean
-    for (int i = 0; i< 2 * n_aug_ +1; i++){
-        x_ = x_ + weights_(i) * Xsig_pred_.col(i);
-    }
-
-
-    for (int i = 0; i< 2 * n_aug_ +1; i++){
-        VectorXd xdiff = Xsig_pred_.col(i) - x_;
-        P_ = P_ + weights_(i) * (Xsig_pred_.col(i) - x_) * (Xsig_pred_.col(i) - x_).transpose();
-    }
+    x_ = PredictMeanAndCovariance(Xsig_pred_).get<0>;
+    //predicte covariance
+    P_ = PredictMeanAndCovariance(Xsig_pred_).get<1>;
 
 }
 
@@ -287,7 +306,6 @@ void UKF::UpdateRadar(MeasurementPackage meas_package) {
   Complete this function! Use radar data to update the belief about the object's
   position. Modify the state vector, x_, and covariance, P_.
 
-  You'll also need to calculate the radar NIS.
   */
     //   Predict measuremnet sigma points for radar (ie put previous predicte sigma points into measruement space
 
@@ -295,10 +313,11 @@ void UKF::UpdateRadar(MeasurementPackage meas_package) {
 
     //dimensions of measurement for radar
     int n_z = 3; //since radar has rho, theta and rho_dot as dimensions
-    MatrixXd Zsig = MatrixXd(n_z, 2 * n_aug + 1);
+    MatrixXd Zsig = MatrixXd(n_z, 2 * n_aug_ + 1);
 
     //mean predicted measurement
     VectorXd z_pred = VectorXd(n_z);
+    z_pred.setZero();
 
     //measurement covariance matrix S
     MatrixXd S = MatrixXd(n_z, n_z);
@@ -316,21 +335,16 @@ void UKF::UpdateRadar(MeasurementPackage meas_package) {
         double rho_dot_meas;
 
         rho_meas = sqrt(pow(px, 2) + pow(py, 2));
-        // if(rho_meas < 0.0001) {
-        //     return
-        // }
         theta_meas =  atan2(py, px);
-
-        double pi = acos(-1);
-        while (theta_meas > pi) {
-            theta_meas -= 2 * pi;
-        }
-        while (theta_meas < -pi) {
-            theta_meas += 2 * pi;
-        }
-
         rho_dot_meas =  (px * cos(yaw) * v + py * sin(yaw) * v) / rho_meas;
 
         Zsig.col(i) << rho_meas, theta_meas , rho_dot_meas;
     }
+
+    //mean predicted mesurment:
+    for (int i = 0; i< 2 * n_aug_ + 1;  i++) {
+        z_pred = z_pred + weights_(i) * Zsig.col(i);
+    }
+
+
 }
