@@ -8,6 +8,8 @@ using Eigen::MatrixXd;
 using Eigen::VectorXd;
 using std::vector;
 
+const double pi = acos(-1);
+
 /**
  * Initializes Unscented Kalman filter
  * This is scaffolding, do not modify
@@ -42,10 +44,10 @@ UKF::UKF() {
     Xsig_pred_ = MatrixXd(n_x_, 2 * n_aug_ + 1);
 
     // Process noise standard deviation longitudinal acceleration in m/s^2
-    std_a_ = 2;
+    std_a_ = 0.2;
 
     // Process noise standard deviation yaw acceleration in rad/s^2
-    std_yawdd_ = 1;
+    std_yawdd_ = 0.1;
 
     //DO NOT MODIFY measurement noise values below these are provided by the sensor manufacturer.
     // Laser measurement noise standard deviation position1 in m
@@ -105,6 +107,7 @@ void UKF::ProcessMeasurement(MeasurementPackage meas_package) {
             /**
             Initialize state.
             */
+            cout << "laser init"<< endl;
             double px = meas_package.raw_measurements_(0);
             double py = meas_package.raw_measurements_(1);
             double v = 0.5;
@@ -131,9 +134,9 @@ void UKF::ProcessMeasurement(MeasurementPackage meas_package) {
 
         Prediction(dt);
 
-        if (meas_package.sensor_type_ == MeasurementPackage::RADAR) {
+        if (meas_package.sensor_type_ == MeasurementPackage::RADAR && use_radar_ == true) {
             UpdateRadar(meas_package);
-        } else {
+        } else if(meas_package.sensor_type_ == MeasurementPackage::LASER && use_laser_ == true){
             UpdateLidar(meas_package);
         }
         
@@ -143,6 +146,8 @@ void UKF::ProcessMeasurement(MeasurementPackage meas_package) {
 MatrixXd UKF::GenerateAugmentedSigmaPoints() {
     VectorXd x_aug = VectorXd(7);
     MatrixXd P_aug = MatrixXd(7,7);
+    //sigma points matrix
+    MatrixXd Xsigma = MatrixXd(n_aug_, 2 * n_aug_ + 1);
 
     //augmented mean state
     x_aug.head(5) = x_;
@@ -152,20 +157,18 @@ MatrixXd UKF::GenerateAugmentedSigmaPoints() {
 
     //augemtned covariance matrix:
     P_aug.setZero();
-    cout << P_aug <<endl;
     P_aug.topLeftCorner(5,5) = P_;
-    P_aug.bottomRightCorner(2,2) << std_a_ * std_a_ ,0,
-                            0, std_yawdd_ * std_yawdd_;
+    P_aug(5,5) = pow(std_a_, 2);
+    P_aug(6,6) = pow(std_yawdd_ , 2);
 
-    //sigma points matrix
-    MatrixXd Xsigma = MatrixXd(n_aug_, 2 * n_aug_ + 1);
+
     //sqrt of P_aug
     MatrixXd A = P_aug.llt().matrixL();
 
     Xsigma.col(0) = x_aug;
-    for (int i = 0; i< n_x_; i++) {
-        Xsigma.col(i + 1) = x_aug + sqrt(lambda_ + n_x_) * A.col(i);
-        Xsigma.col(i + 1 + n_x_) = x_aug - sqrt(lambda_ + n_x_) * A.col(i);
+    for (int i = 0; i< n_aug_; i++) {
+        Xsigma.col(i + 1) = x_aug + sqrt(lambda_ + n_aug_) * A.col(i);
+        Xsigma.col(i + 1 + n_aug_) = x_aug - sqrt(lambda_ + n_aug_) * A.col(i);
     }
 
     return Xsigma;
@@ -173,6 +176,7 @@ MatrixXd UKF::GenerateAugmentedSigmaPoints() {
 }
 
 MatrixXd UKF::PredictSigmaPoints(double delta_t) {
+    cout << "delta t: "<<delta_t << endl;
     MatrixXd Xsigma_aug = GenerateAugmentedSigmaPoints();
     MatrixXd Xsigma_pred = MatrixXd(n_x_, 2 * n_aug_ + 1);
 
@@ -212,28 +216,43 @@ MatrixXd UKF::PredictSigmaPoints(double delta_t) {
 }
 
 tuple<VectorXd, MatrixXd> UKF::PredictMeanAndCovariance(MatrixXd Xsigma_pred) {
+    cout << "pred mean and cov starrt" << endl;
     //predicted state
     VectorXd x = VectorXd(n_x_);
     x.setZero();
     //preicte covariance matrix
     MatrixXd P = MatrixXd(n_x_, n_x_);
     P.setZero();
-    cout << "predict mean & cov"<<endl;
-    cout << Xsigma_pred<< endl;
+
     //predicte state
     for (int i = 0; i < 2* n_aug_ +1; i++) {
         x = x + weights_(i) * Xsigma_pred.col(i);
     }
+
+    cout << "predicte state en d"<< endl;
     //predicted covariance matrix:
     for (int i = 0; i < 2* n_aug_ +1; i++) {
         VectorXd xdiff = Xsigma_pred.col(i) - x;
+
+        if(xdiff(3) > pi){
+            cout << xdiff(3) << "angle_norm"<<endl;
+        }
+        if (xdiff(3) < -pi) {
+            cout << xdiff(3) << "angle_norm2"<<endl;
+        }
+
+        xdiff(3) = fmod(xdiff(3), 2.0 * pi);
+
+
         //angle normalisation
-        while (xdiff(3)> M_PI) {
-            xdiff(3) -= 2.* M_PI;
-        };
-        while (xdiff(3)<-M_PI) {
-            xdiff(3) += 2.* M_PI;
-        };
+//        while (xdiff(3)> pi) {
+//            cout << xdiff(3) << "angle_norm"<<endl;
+//            xdiff(3) -= 2.* pi;
+//        };
+//        while (xdiff(3) < -pi) {
+//            cout << xdiff(3) << "angle_norm2"<<endl;
+//            xdiff(3) += 2.* pi;
+//        };
 
         P = P + weights_(i) * xdiff * xdiff.transpose();
     }
@@ -261,7 +280,7 @@ void UKF::Prediction(double delta_t) {
     cout << "after predict mean & cov" << endl;
     //predicted mean
     x_ = std::get<0>(predMeanCov);
-    cout << "after predict mean & cov" << x<<endl;
+    cout << "after predict mean & cov" << x_<<endl;
     //predicte covariance
     P_ = std::get<1>(predMeanCov);
     cout << "after predict mean & cov" << P_ << endl;
