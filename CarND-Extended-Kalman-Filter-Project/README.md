@@ -15,8 +15,8 @@ can handle non-linear measurements. In this case, the non-linear
 measurment comes from the radar measurement, whereas the lidar measurements are
 linear.
 
-The steps in a kalman filter algorithm (credit: udacity)
-![The steps in a kalman filter algorithm (credit: udacity)](https://github.com/wwymak/udacity-selfdrivingcar-nd/blob/master/CarND-Extended-Kalman-Filter-Project/kalman_filter_algo.png)
+The steps in a kalman filter algorithm that is implemented in the code is shown in the following diagram (credit: udacity)
+![The steps in a kalman filter algorithm (credit: udacity)](https://github.com/wwymak/udacity-selfdrivingcar-nd/blob/master/CarND-Extended-Kalman-Filter-Project/kalman_filter_algo.png =400x200)
 
 ----
 
