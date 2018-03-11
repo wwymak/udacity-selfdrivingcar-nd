@@ -74,3 +74,26 @@ vx: 0.4582
 vy: 0.5152  
 ```
 which satisfied the project requirements of `RMSE <= [.11, .11, 0.52, 0.52]` 
+
+By commenting out the relevant parts of the code, we can also get
+the RMSE values of using just one of the sensors. From the RMSE, we can see that the laser is much more accurate
+than the radar, which is expected. But we can see that using both together gives a more accurate estimation of the position,
+hence why we're using sensor fusion :nerd_face:
+ 
+Laser only:
+```
+x: 0.1473  
+y: 0.1153  
+vx: 0.6383  
+vy: 0.5346 
+
+```
+
+Radar only:
+```
+x: 3.0325  
+y: 5.5079  
+vx: 1.6631  
+vy: 2.4571
+
+```

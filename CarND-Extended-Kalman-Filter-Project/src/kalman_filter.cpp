@@ -7,8 +7,6 @@ using namespace std;
 using Eigen::MatrixXd;
 using Eigen::VectorXd;
 
-// Please note that the Eigen library does not initialize 
-// VectorXd or MatrixXd objects with zeros upon creation.
 
 KalmanFilter::KalmanFilter() {}
 
@@ -36,7 +34,7 @@ void KalmanFilter::Update(const VectorXd &z) {
   /**
     * normal Kalman Filter equations for state update
   */
-
+    //position vector x
     long xsize = x_.size();
     //identity matrix
     MatrixXd I = MatrixXd::Identity(xsize, xsize);
@@ -51,7 +49,9 @@ void KalmanFilter::Update(const VectorXd &z) {
 }
 
 void KalmanFilter::UpdateEKF(const VectorXd &z) {
-
+    /**
+        * extended Kalman Filter equations for state update
+      */
     VectorXd h(3);
 
     const double pi = acos(-1);
@@ -60,7 +60,7 @@ void KalmanFilter::UpdateEKF(const VectorXd &z) {
     float py = x_(1);
     float vx = x_(2);
     float vy = x_(3);
-
+    //convert position and velociyt values to the polar coordinate space for radar
     float rho = sqrt(pow(px, 2) + pow(py, 2));
     float theta = atan2(py , px);
     float rho_dot = (px * vx + py * vy)/rho;
@@ -74,12 +74,21 @@ void KalmanFilter::UpdateEKF(const VectorXd &z) {
     MatrixXd I = MatrixXd::Identity(xsize, xsize);
 
     VectorXd y = z - h;
-    while (y(1) > pi) {
-        y(1) -= 2 * pi;
-    }
-    while (y(1) < -pi) {
-        y(1) += 2 * pi;
-    }
+    //normalise the angles so it's between pi and -pi
+//    y(1) = fmod(y(1), 2.0 * pi);
+
+    /**
+     * todo figure out why fmod is doing strange things
+     while the lectures solutions seem to be using the following to normalise angles,
+    it is a rather inefficient way of going about things esp if you end up with a large angle,
+        (and it might also get stuck in and infinite loop if you make a mistake in your angle cacl)
+     */
+        while (y(1) > pi) {
+            y(1) -= 2 * pi;
+        }
+        while (y(1) < -pi) {
+            y(1) += 2 * pi;
+        }
 
     MatrixXd S = H_ * P_ * H_.transpose() + R_;
     //Kalman gain
@@ -87,7 +96,5 @@ void KalmanFilter::UpdateEKF(const VectorXd &z) {
 
     x_ = x_ + K * y;
     P_ = (I - K * H_) * P_;
-
-
 
 }

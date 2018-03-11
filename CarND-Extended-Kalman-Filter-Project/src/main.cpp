@@ -30,7 +30,7 @@ std::string hasData(std::string s) {
 int main()
 {
     ofstream logfile;
-    logfile.open("ekf_outputs.csv");
+    logfile.open("ekf_outputs_radar.csv");
     logfile << "sensor,x_gt,y_gt,vx_gt,vy_gt,p_x,p_y,vx,vy,RMSE_x,RMSE_y,RMSE_vx,RMSE_vy\n";
     uWS::Hub h;
 
