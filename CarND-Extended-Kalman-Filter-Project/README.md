@@ -19,15 +19,37 @@ linear.
 
 ### Project code
 
-These are in the `src` directory. the `kalman_filter.cpp` is the class
-that implements the actual 
+These are in the `src` directory. 
 
-Visualisations: the output of the filter at each timestep is also 
+The `kalman_filter.cpp` is the class
+that implements the actual filter predict and update steps. The lidar measurements
+are linear with respect to the coordinate space, so a normal Kalman Filter update is used, whereas
+for the radar measurements, the non-linear relation between the measurements and the coordinate
+space means that a non linear approach, in this case the Extended Kalman Filter is needed.
+
+The `FusionEKF.cpp` file implements the sensor fusion process-- at each timestep, it  predict, then
+update based on the values it receives from the sensors, calling the relevant function in the kalman filter class depending on the
+which sensor the measurment is from
+
+`tools.cpp` file contains 2 helper functions -- one for calculating the root mean squared error (RMSE) values between the
+predicted and the ground truth values,and one for calculating the Jacobian matrix which is needed in the non-linear EKF 
+algorithm.
+
+`main.cpp` communicates with the simulator, passes the values from the simulation to the fusionEKF code, and sends the estimated
+locations from the filter back to the simulator. There is also an extra bit where the output is written to a csv file for 
+visualisations.
+
+---
+
+##### Visualisations: 
+
+The output of the filter at each timestep is also 
 written to a file so the outputs can be visualised/analysed separately.
 The visualisations are in the `EKF-output-vis.ipynb` notebook. 
 (if not running notebook locally, dyanmic charts viewable [here](https://github.com/wwymak/udacity-selfdrivingcar-nd/blob/master/CarND-Extended-Kalman-Filter-Project/EKF-output-vis.ipynb))
 
-#### Running the code:
+--- 
+### Running the code:
 This assumes the term 2 simulator has been installed and the relevant
 packages setup
 
@@ -40,6 +62,8 @@ Then in the project root directory, run:
 5. ./ExtendedKF
 6. Launch simulator and see how the green(predictions) matches 
 against the measurments
+
+---
 
 ### EKF outputs
 The RMSE outputs of this implementation on the 'obj_pose-laser-radar-synthetic-input.txt' dataset is
