@@ -2,6 +2,7 @@
 #include "Eigen/Dense"
 #include <iostream>
 #include <tuple>
+#include "tools.h"
 
 using namespace std;
 using Eigen::MatrixXd;
@@ -70,6 +71,8 @@ UKF::UKF() {
     //todo figure out what this is
     ///* time when the state is true, in us
     time_us_ = 0;
+
+    Tools tools;
 
 }
 
@@ -227,7 +230,8 @@ tuple<VectorXd, MatrixXd> UKF::PredictMeanAndCovariance(MatrixXd Xsigma_pred) {
     //predicted covariance matrix:
     for (int i = 0; i < 2* n_aug_ +1; i++) {
         VectorXd xdiff = Xsigma_pred.col(i) - x;
-        xdiff(3) = fmod(xdiff(3), 2.0 * pi);
+        tools.NormaliseAngles(xdiff(3));
+//        xdiff(3) = fmod(xdiff(3), 2.0 * pi);
 
         P = P + weights_(i) * xdiff * xdiff.transpose();
     }
@@ -270,10 +274,6 @@ void UKF::UpdateLidar(MeasurementPackage meas_package) {
                0, 1, 0, 0,0;
     MatrixXd R_laser_ = MatrixXd(2,2);
 
-    cout << pow(std_laspx_, 2) << endl;
-    cout << std_laspx_ * std_laspx_ << endl;
-
-
     R_laser_ << std_laspx_ * std_laspx_, 0,
             0, std_laspy_ * std_laspy_;
 
@@ -296,10 +296,8 @@ void UKF::UpdateLidar(MeasurementPackage meas_package) {
  */
 void UKF::UpdateRadar(MeasurementPackage meas_package) {
   /**
-  TODO:
-
-  Complete this function! Use radar data to update the belief about the object's
-  position. Modify the state vector, x_, and covariance, P_.
+  update the state x_ and covariance matrx P_ according to measurements from the radar
+   the radar is non linear so using the unscented kalman filter algorithm here
 
   */
     //   Predict measuremnet sigma points for radar (ie put previous predicte sigma points into measruement space
@@ -346,15 +344,8 @@ void UKF::UpdateRadar(MeasurementPackage meas_package) {
     for (int i = 0; i < 2 * n_aug_ + 1; i++) {  //2n+1 simga points
         //residual
         VectorXd z_diff = Zsig.col(i) - z_pred;
-        //angle normalization
-        z_diff(1) = fmod(z_diff(1), 2.0 * pi);
-
-//        while (z_diff(1) > M_PI) {
-//            z_diff(1) -= 2. * M_PI;
-//        }
-//        while (z_diff(1) < -M_PI) {
-//            z_diff(1)+=2.* M_PI;
-//        };
+        //normalise angles
+        tools.NormaliseAngles(z_diff(1));
 
         S = S + weights_(i) * z_diff * z_diff.transpose();
     }
@@ -374,8 +365,9 @@ void UKF::UpdateRadar(MeasurementPackage meas_package) {
         VectorXd x_diff = Xsig_pred_.col(i) - x_;
         VectorXd zdiff =  Zsig.col(i) - z_pred;
 
+        tools.NormaliseAngles(zdiff(1));
         //angle normalization
-        zdiff(1) = fmod(zdiff(1), 2.0 * pi);
+//        zdiff(1) = fmod(zdiff(1), 2.0 * pi);
 //        while (zdiff(1) > M_PI) {
 //            zdiff(1) -= 2. * M_PI;
 //        }

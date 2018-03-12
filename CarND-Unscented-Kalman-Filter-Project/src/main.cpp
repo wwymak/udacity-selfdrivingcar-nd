@@ -1,4 +1,6 @@
 #include <uWS/uWS.h>
+#include <uWS/uWS.h>
+#include <fstream>
 #include <iostream>
 #include "json.hpp"
 #include <math.h>
@@ -27,6 +29,11 @@ std::string hasData(std::string s) {
 }
 
 int main() {
+    //logging output of filter for plotting
+    ofstream logfile;
+    logfile.open("ukf_outputs.csv");
+    logfile << "sensor,x_gt,y_gt,vx_gt,vy_gt,p_x,p_y,vx,vy,RMSE_x,RMSE_y,RMSE_vx,RMSE_vy\n";
+
     uWS::Hub h;
 
     // Create a Kalman Filter instance
@@ -126,7 +133,8 @@ int main() {
                     estimations.push_back(estimate);
 
                     VectorXd RMSE = tools.CalculateRMSE(estimations, ground_truth);
-
+                    logfile<<sensor_type<<","<< x_gt <<"," << y_gt <<"," <<vx_gt<<"," <<vy_gt<<","<< p_x<<","
+                           << p_y<<","<< v1 <<","<<v2<<"," <<RMSE(0)<<","<< RMSE(1)<<","<< RMSE(2)<< ","<< RMSE(3)<< "\n" ;
                     json msgJson;
                     msgJson["estimate_x"] = p_x;
                     msgJson["estimate_y"] = p_y;

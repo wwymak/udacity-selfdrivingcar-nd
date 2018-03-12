@@ -35,3 +35,7 @@ VectorXd Tools::CalculateRMSE(const vector<VectorXd> &estimations,
     rmse = rmse.array().sqrt();
     return rmse;
 }
+
+void Tools::NormaliseAngles(double &phi) {
+    phi = atan2(sin(phi), cos(phi));
+}

@@ -3,6 +3,7 @@
 
 #include "measurement_package.h"
 #include "Eigen/Dense"
+#include "tools.h"
 #include <vector>
 #include <tuple>
 #include <string>
@@ -70,7 +71,7 @@ public:
     ///* Sigma point spreading parameter
     double lambda_;
 
-
+    Tools tools;
     /**
      * Constructor
      */
