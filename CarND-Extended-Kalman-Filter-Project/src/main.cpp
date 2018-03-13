@@ -30,8 +30,8 @@ std::string hasData(std::string s) {
 int main()
 {
     ofstream logfile;
-    logfile.open("ekf_outputs.csv");
-    logfile << "x_gt, y_gt, vx_gt, vy_gt, p_x, p_y, vx, vy, RMSE_x, RMSE_y, RMSE_vx , RMSE_vy, \n ";
+    logfile.open("ekf_outputs_radar.csv");
+    logfile << "sensor,x_gt,y_gt,vx_gt,vy_gt,p_x,p_y,vx,vy,RMSE_x,RMSE_y,RMSE_vx,RMSE_vy\n";
     uWS::Hub h;
 
     // Create a Kalman Filter instance
@@ -128,7 +128,7 @@ int main()
     	  estimations.push_back(estimate);
 
     	  VectorXd RMSE = tools.CalculateRMSE(estimations, ground_truth);
-        logfile << x_gt <<"," << y_gt <<"," <<vx_gt<<"," <<vy_gt<<","<< p_x<<","
+        logfile<<sensor_type<<","<< x_gt <<"," << y_gt <<"," <<vx_gt<<"," <<vy_gt<<","<< p_x<<","
                 << p_y<<","<< v1 <<","<<v2<<"," <<RMSE(0)<<","<< RMSE(1)<<","<< RMSE(2)<< ","<< RMSE(3)<< "\n" ;
           json msgJson;
           msgJson["estimate_x"] = p_x;
