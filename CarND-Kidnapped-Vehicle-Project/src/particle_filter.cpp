@@ -96,6 +96,10 @@ void ParticleFilter::dataAssociation(std::vector<LandmarkObs> predicted, std::ve
 
 }
 
+
+void ParticleFilter::findClosestLandmark(vector<LandmarkObs> &landmarks, vector<LandmarkObs>& observations) {
+
+}
 void ParticleFilter::updateWeights(double sensor_range, double std_landmark[], 
 		const std::vector<LandmarkObs> &observations, const Map &map_landmarks) {
 	// TODO: Update the weights of each particle using a mult-variate Gaussian distribution. You can read
