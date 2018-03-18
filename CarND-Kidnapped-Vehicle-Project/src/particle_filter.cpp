@@ -108,8 +108,19 @@ void ParticleFilter::updateWeights(double sensor_range, double std_landmark[],
 	//   and the following is a good resource for the actual equation to implement (look at equation 
 	//   3.33
 	//   http://planning.cs.uiuc.edu/node99.html
+
     for (int i = 0; i< particles.size(); i++) {
         Particle p_i = particles.at(i);
+        vector<LandmarkObs> transformed_obs;
+        for (int j = 0; j < observations.size(); j++) {
+            LandmarkObs obs = observations.at(j);
+            LandmarkObs obs_trans;
+            double xm = p_i.x + cos(p_i.theta) * obs.x - obs.y * sin(p_i.theta);
+            double ym = p_i.y + sin(p_i.theta) * obs.x - obs.y * cos(p_i.theta);
+            obs_trans.x = xm;
+            obs_trans.y = ym;
+            transformed_obs.push_back(obs_trans);
+        }
 
         double a = p_i.x -
 
@@ -122,6 +133,12 @@ void ParticleFilter::resample() {
 	// TODO: Resample particles with replacement with probability proportional to their weight. 
 	// NOTE: You may find std::discrete_distribution helpful here.
 	//   http://en.cppreference.com/w/cpp/numeric/random/discrete_distribution
+    discrete_distribution<int> dist_weights(weights.begin(), weights.end());
+    vector<Particle> resampled;
+    for (int i = 0; i< particles.size(); i++) {
+        resampled.push_back(particles.at(dist_weights(gen));
+    }
+    particles = resampled;
 
 }
 
