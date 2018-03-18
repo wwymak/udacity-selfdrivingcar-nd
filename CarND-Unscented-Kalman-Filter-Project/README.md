@@ -1,8 +1,12 @@
 ## Unscented Kalman Filter Project
 
-This project is a C++ implementation of an Unscented Kalman
-Filter 
+This project is a C++ implementation of an [Unscented Kalman
+Filter](https://en.wikipedia.org/wiki/Kalman_filter#Unscented_Kalman_filter),
+applied to noisy lidar and radar measurements of a bicycle in the simulatro 
 
+Similar to the Extended Kalman Filter, the Unscented Kalman Filter
+is for handling non linear measurements space, with the difference being how it models the
+non linearity. 
 
 --- 
 ### Running the code:
@@ -32,6 +36,9 @@ vx: 0.2966
 vy: 0.2585
 ```
 
+As expected, using only one sensor gives a less accurate localisation of the vehicle:
+
+
 Radar only:
 
 ```
@@ -51,3 +58,8 @@ y: 0.1146
 vx: 0.4857  
 vy: 0.2609
 ```
+
+Compared to the output from the previous project on Extended Kalman Filters,
+the output from the unscented Kalman Filter is also more accurate for all 
+3 different measurements (both sensors, laser only, lidar only.) The RMSE 
+values from the Extended Kalman Filter ran on the same data can be seen [here](https://github.com/wwymak/udacity-selfdrivingcar-nd/tree/master/CarND-Extended-Kalman-Filter-Project/readme.md)
