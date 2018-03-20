@@ -16,6 +16,7 @@
 #include <iterator>
 
 #include "particle_filter.h"
+#include "map.h"
 
 using namespace std;
 default_random_engine gen;
@@ -96,12 +97,9 @@ void ParticleFilter::dataAssociation(std::vector<LandmarkObs> predicted, std::ve
 
 }
 
-
-void ParticleFilter::findClosestLandmark(vector<LandmarkObs> &landmarks, vector<LandmarkObs>& observations) {
-
-}
 void ParticleFilter::updateWeights(double sensor_range, double std_landmark[], 
 		const std::vector<LandmarkObs> &observations, const Map &map_landmarks) {
+    cout << "std" << std_landmark[0]<< ","<< std_landmark[1] << endl;
 	// TODO: Update the weights of each particle using a mult-variate Gaussian distribution. You can read
 	//   more about this distribution here: https://en.wikipedia.org/wiki/Multivariate_normal_distribution
 	// NOTE: The observations are given in the VEHICLE'S coordinate system. Your particles are located
@@ -124,11 +122,40 @@ void ParticleFilter::updateWeights(double sensor_range, double std_landmark[],
             obs_trans.x = xm;
             obs_trans.y = ym;
             transformed_obs.push_back(obs_trans);
+
+
+//            <Map::single_landmark_s> minLandmark = map_landmarks.landmark_list.at(0);
+            double minDistance = dist(map_landmarks.landmark_list.at(0).x_f, map_landmarks.landmark_list.at(0).y_f, xm, ym);
+            float minX = map_landmarks.landmark_list.at(0).x_f;
+            float minY = map_landmarks.landmark_list.at(0).y_f;
+            int index = 0;
+//            double minDistance = dist(minLandmark.x_f, minLandmark.y_f, xm, ym);
+
+            for  (int k = 1; k< map_landmarks.landmark_list.size(); k++ ){
+//                <Map::single_landmark_s> currLandmark = map_landmarks.landmark_list.at(k);
+                double currDist = dist(map_landmarks.landmark_list.at(k).x_f, map_landmarks.landmark_list.at(k).y_f, xm, ym);
+                if (currDist < minDistance) {
+                    minDistance = currDist;
+                    index = k;
+                    minX = map_landmarks.landmark_list.at(k).x_f;
+                    minY = map_landmarks.landmark_list.at(k).y_f;
+                }
+            }
+
+            double powx =  pow((xm - minX), 2) /(2 * pow(std_landmark[0], 2));
+            double powy =  pow((ym - minY), 2) /(2 * pow(std_landmark[1], 2));
+
+            cout << powx << "," <<powy<< endl;
+
+//            double powx =  pow((xm - minLandmark.x_f), 2) /(2 * pow(std_landmark[0], 2));
+//            double powy =  pow((ym - minLandmark.y_f), 2) /(2 * pow(std_landmark[1], 2));
+
+            p_i.weight = p_i.weight*  1 /(2 * M_PI * std_landmark[0] * std_landmark[1] ) * pow(M_E, -(powx + powy));
+
+
+
         }
-
-        double a = p_i.x -
-
-        double P = 1 / (2 * M_PI * std_landmark[0], std_landmark[1]) * exp()
+        cout << p_i.weight << endl;
     }
 
 }
@@ -140,7 +167,7 @@ void ParticleFilter::resample() {
     discrete_distribution<int> dist_weights(weights.begin(), weights.end());
     vector<Particle> resampled;
     for (int i = 0; i< particles.size(); i++) {
-        resampled.push_back(particles.at(dist_weights(gen));
+        resampled.push_back(particles.at(dist_weights(gen)));
     }
     particles = resampled;
 

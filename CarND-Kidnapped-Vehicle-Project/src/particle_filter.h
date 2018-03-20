@@ -81,8 +81,7 @@ public:
 
 	void dataAssociation(std::vector<LandmarkObs> predicted, std::vector<LandmarkObs>& observations);
 
-	void ParticleFilter::findClosestLandmark(std::vector<LandmarkObs> &landmarks, std::vector<LandmarkObs>& observations);
-	
+
 	/**
 	 * updateWeights Updates the weights for each particle based on the likelihood of the 
 	 *   observed measurements. 
