@@ -51,7 +51,7 @@ void ParticleFilter::prediction(double delta_t, double std_pos[], double velocit
 	// update the position of each each particle and add random Gaussian noise.
 
 
-    for (int i = 0; i< particles.size(); i++) {
+    for (int i = 0; i< num_particles; i++) {
         Particle p_i = particles.at(i);
 
         if (yaw_rate == 0) {
@@ -161,13 +161,14 @@ void ParticleFilter::updateWeights(double sensor_range, double std_landmark[],
 }
 
 void ParticleFilter::resample() {
+    default_random_engine gen;
 	// TODO: Resample particles with replacement with probability proportional to their weight. 
 	// NOTE: You may find std::discrete_distribution helpful here.
 	//   http://en.cppreference.com/w/cpp/numeric/random/discrete_distribution
     discrete_distribution<int> dist_weights(weights.begin(), weights.end());
     vector<Particle> resampled;
-    for (int i = 0; i< particles.size(); i++) {
-        resampled.push_back(particles.at(dist_weights(gen)));
+    for (int i = 0; i< num_particles ; i++) {
+        resampled.push_back(particles[dist_weights(gen)]);
     }
     particles = resampled;
 
