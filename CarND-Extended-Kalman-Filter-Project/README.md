@@ -49,7 +49,7 @@ visualisations.
 The output of the filter at each timestep is also 
 written to a file so the outputs can be visualised/analysed separately.
 The visualisations are in the `EKF-output-vis.ipynb` notebook. 
-(if not running notebook locally, dyanmic charts viewable [here](https://github.com/wwymak/udacity-selfdrivingcar-nd/blob/master/CarND-Extended-Kalman-Filter-Project/EKF-output-vis.ipynb))
+(if not running notebook locally, dyanmic charts viewable [here](http://nbviewer.jupyter.org/github/wwymak/udacity-selfdrivingcar-nd/blob/master/CarND-Extended-Kalman-Filter-Project/EKF-output-vis.ipynb))
 
 --- 
 ### Running the code:

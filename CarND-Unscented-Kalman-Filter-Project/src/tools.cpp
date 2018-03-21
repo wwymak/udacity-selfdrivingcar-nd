@@ -36,6 +36,10 @@ VectorXd Tools::CalculateRMSE(const vector<VectorXd> &estimations,
     return rmse;
 }
 
+/**
+ * convert the angle phi from state vector to between pi and -pi
+ * @param phi state angle to normalises
+ */
 void Tools::NormaliseAngles(double &phi) {
     phi = atan2(sin(phi), cos(phi));
 }
