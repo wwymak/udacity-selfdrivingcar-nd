@@ -111,6 +111,17 @@ void ParticleFilter::updateWeights(double sensor_range, double std_landmark[],
 	//   3.33
 	//   http://planning.cs.uiuc.edu/node99.html
 
+//    vector<LandmarkObs> transformed_obs;
+//    for (int j = 0; j < observations.size(); j++) {
+//        LandmarkObs obs = observations.at(j);
+//        LandmarkObs obs_trans;
+//        double xm = p_i.x + cos(p_i.theta) * obs.x - obs.y * sin(p_i.theta);
+//        double ym = p_i.y + sin(p_i.theta) * obs.x - obs.y * cos(p_i.theta);
+//        obs_trans.x = xm;
+//        obs_trans.y = ym;
+//        transformed_obs.push_back(obs_trans);
+//    }
+
     for (int i = 0; i< particles.size(); i++) {
         Particle p_i = particles.at(i);
         vector<LandmarkObs> transformed_obs;
@@ -118,7 +129,7 @@ void ParticleFilter::updateWeights(double sensor_range, double std_landmark[],
             LandmarkObs obs = observations.at(j);
             LandmarkObs obs_trans;
             double xm = p_i.x + cos(p_i.theta) * obs.x - obs.y * sin(p_i.theta);
-            double ym = p_i.y + sin(p_i.theta) * obs.x - obs.y * cos(p_i.theta);
+            double ym = p_i.y + sin(p_i.theta) * obs.x + obs.y * cos(p_i.theta);
             obs_trans.x = xm;
             obs_trans.y = ym;
             transformed_obs.push_back(obs_trans);
@@ -155,8 +166,10 @@ void ParticleFilter::updateWeights(double sensor_range, double std_landmark[],
 
 
         }
+        weights.at(i) = p_i.weight;
         cout << p_i.weight << endl;
     }
+
 
 }
 

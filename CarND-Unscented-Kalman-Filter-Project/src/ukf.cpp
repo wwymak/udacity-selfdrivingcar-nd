@@ -86,10 +86,7 @@ UKF::~UKF() {
  */
 void UKF::ProcessMeasurement(MeasurementPackage meas_package) {
   /**
-  TODO:
-
-  Complete this function! Make sure you switch between lidar and radar
-  measurements.
+   * parses the current measurement and performs the update/prediction stesp
   */
     if (!is_initialized_) {
         //todo initialisationmkdi
@@ -303,7 +300,7 @@ void UKF::UpdateRadar(MeasurementPackage meas_package) {
     //   Predict measuremnet sigma points for radar (ie put previous predicte sigma points into measruement space
 
     //matrix for sigma points in measurement space
-
+    cout<< "update radar start" << endl;
     //dimensions of measurement for radar
     int n_z = 3; //since radar has rho, theta and rho_dot as dimensions
     MatrixXd Zsig = MatrixXd(n_z, 2 * n_aug_ + 1);
@@ -379,7 +376,7 @@ void UKF::UpdateRadar(MeasurementPackage meas_package) {
     //kalmain gain
     MatrixXd K = MatrixXd(n_x_, n_z);
     K = Tc * S.inverse();
-
+    cout<< "update radar set x and p" << endl;
     x_ = x_ + K * ( meas_package.raw_measurements_ - z_pred);
     P_ = P_ - K * S * K.transpose();
 }
