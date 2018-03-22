@@ -42,7 +42,7 @@ public:
 	
 	// Set of current particles
 	std::vector<Particle> particles;
-
+//	std::vector<double> weights;
 	// Constructor
 	// @param num_particles Number of particles
 	ParticleFilter() : num_particles(0), is_initialized(false) {}
