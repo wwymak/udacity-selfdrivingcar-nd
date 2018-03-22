@@ -142,6 +142,18 @@ void ParticleFilter::updateWeights(double sensor_range, double std_landmark[],
     for (int i = 0; i< particles.size(); i++) {
         Particle p_i = particles.at(i);
 
+        vector<LandmarkObs> landmarksInRange;
+        for (int a = 0; a < map_landmarks.landmark_list.size(); a++) {
+            double distToMark = dist(map_landmarks.landmark_list.at(i).x_f, map_landmarks.landmark_list.at(i).y_f, p_i.x, p_i.y);
+            if (distToMark <= sensor_range) {
+                LandmarkObs obs_in_range;
+                obs_in_range.id = map_landmarks.landmark_list.at(i).id;
+                obs_in_range.x = map_landmarks.landmark_list.at(i).x_f;
+                obs_in_range.y =  map_landmarks.landmark_list.at(i).y_f;
+                landmarksInRange.push_back(obs_in_range);
+            }
+        }
+
         vector<LandmarkObs> transformed_obs;
         for (int j = 0; j < observations.size(); j++) {
             LandmarkObs obs = observations.at(j);
