@@ -95,19 +95,19 @@ void ParticleFilter::prediction(double delta_t, double std_pos[], double velocit
 void ParticleFilter::dataAssociation(std::vector<LandmarkObs> predicted, std::vector<LandmarkObs>& observations) {
 	//  Find the predicted measurement that is closest to each observed measurement and assign the
 	//   observed measurement to this particular landmark.
-    int closest_predicted_index = 0;
+    int closest_predicted_id = 0;
     double min_dist = 99999999; // a very high value such that should be overwritten
     for (int i = 0; i< observations.size(); i++) {
-        LandmarkObs curr_obs = observations.at(i);
+        LandmarkObs& curr_obs = observations.at(i);
         for (int j = 0; j< predicted.size(); j++) {
-            LandmarkObs curr_predicted = predicted.at(j);
+            LandmarkObs& curr_predicted = predicted.at(j);
             double dist_curr = dist(curr_obs.x, curr_obs.y, curr_predicted.x, curr_predicted.y);
             if (dist_curr < min_dist) {
                 min_dist = dist_curr;
-                closest_predicted_index = j;
+                closest_predicted_id = curr_predicted.id;
             }
         }
-        curr_obs.id = closest_predicted_index;
+        curr_obs.id = closest_predicted_id;
     }
 
 }
@@ -166,6 +166,8 @@ void ParticleFilter::updateWeights(double sensor_range, double std_landmark[],
             double ym = p_i.y + sin(p_i.theta) * obs.x + obs.y * cos(p_i.theta);
             obs_trans.x = xm;
             obs_trans.y = ym;
+
+            cout<< "xm"<< xm<< ",ym"<< ym<< endl;
             transformed_obs.push_back(obs_trans);
         }
 
@@ -231,7 +233,7 @@ void ParticleFilter::updateWeights(double sensor_range, double std_landmark[],
 //
 //        }
         weights.push_back(p_i.weight);
-//        particles.at(i) = p_i;
+        particles.at(i) = p_i;
 //
 //        cout << "new weight"<< weights.at(i)<< endl;
 //        if (weights.at(i) == 1) {
