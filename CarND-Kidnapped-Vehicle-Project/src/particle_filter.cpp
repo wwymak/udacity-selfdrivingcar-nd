@@ -110,8 +110,6 @@ void ParticleFilter::dataAssociation(std::vector<LandmarkObs> predicted, std::ve
         curr_obs.id = closest_predicted_index;
     }
 
-    cout << "Data association end"<< endl;
-
 }
 
 void ParticleFilter::updateWeights(double sensor_range, double std_landmark[],
@@ -175,8 +173,6 @@ void ParticleFilter::updateWeights(double sensor_range, double std_landmark[],
 
         //the transformed_obs will each have their ids = the closest landmark's id
         dataAssociation(landmarksInRange, transformed_obs);
-        cout <<"here 4" << endl;
-        cout <<transformed_obs.size() << endl;
         // find the associated landmark by looping over the landmarks in range
         for (int k = 0; k< transformed_obs.size(); k++) {
             LandmarkObs curr_obst = transformed_obs.at(k);
@@ -186,14 +182,19 @@ void ParticleFilter::updateWeights(double sensor_range, double std_landmark[],
 
             double mu_x;
             double mu_y;
+            int assoc_id;
 
             for (int l= 0; l< landmarksInRange.size(); l++) {
                 if (landmarksInRange.at(l).id == curr_id) {
+                    cout << "here-- **"<< endl;
                     mu_x = landmarksInRange.at(l).x;
                     mu_y = landmarksInRange.at(l).y;
+                    assoc_id = landmarksInRange.at(l).id;
                 }
             }
-            cout << "asoociated"<< endl;
+
+            cout << "landmarkds"<< mu_x << ","<< mu_y<< ","<< assoc_id<<endl;
+
             double powx =  pow((xm - mu_x), 2) /(2 * pow(std_landmark_x, 2));
             double powy =  pow((ym - mu_y), 2) /(2 * pow(std_landmark_y, 2));
 
