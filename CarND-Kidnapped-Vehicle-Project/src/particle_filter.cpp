@@ -65,16 +65,16 @@ void ParticleFilter::prediction(double delta_t, double std_pos[], double velocit
     for (int i = 0; i< num_particles; i++) {
         double x0, x1, y0, y1, theta0, theta1;
 
-        Particle p_i = particles.at(i);
+        Particle& p_i = particles.at(i);
 
         x0 = p_i.x;
         y0 = p_i.y;
         theta0 = p_i.theta;
 
-        if (fabs(yaw_rate) < 0.0001) {
+        if (fabs(yaw_rate) < 0.00001) {
             x1 = x0 + velocity  * cos(p_i.theta) * delta_t;
             y1 = y0 +  velocity  * sin(p_i.theta) * delta_t;
-            theta1 = theta0 + 0.0001 * delta_t;
+            theta1 = theta0 + 0.00001 * delta_t;
         } else {
             x1 = x0 +  velocity / yaw_rate * (sin(theta0 + yaw_rate * delta_t) - sin(theta0));
             y1 = y0 + velocity / yaw_rate * (cos(theta0) - cos(theta0 + yaw_rate * delta_t));
@@ -88,6 +88,8 @@ void ParticleFilter::prediction(double delta_t, double std_pos[], double velocit
         p_i.x = dist_x(gen);
         p_i.y = dist_y(gen);
         p_i.theta = dist_theta(gen);
+
+        cout << "id: " << particles[i].id << " x: " << particles[i].x << " y: " << particles[i].y << " theta: " << particles[i].theta << "weights : " << particles[i].weight << "\n";
     }
 
 }
@@ -102,12 +104,15 @@ void ParticleFilter::dataAssociation(std::vector<LandmarkObs> predicted, std::ve
         for (int j = 0; j< predicted.size(); j++) {
             LandmarkObs& curr_predicted = predicted.at(j);
             double dist_curr = dist(curr_obs.x, curr_obs.y, curr_predicted.x, curr_predicted.y);
+            cout << "dist curr: "<< dist_curr<< endl;
             if (dist_curr < min_dist) {
                 min_dist = dist_curr;
                 closest_predicted_id = curr_predicted.id;
             }
         }
         curr_obs.id = closest_predicted_id;
+
+        cout << curr_obs.id<< " id assigned at item "<< i<<endl;
     }
 
 }
@@ -145,7 +150,7 @@ void ParticleFilter::updateWeights(double sensor_range, double std_landmark[],
 
         vector<LandmarkObs> landmarksInRange;
         for (int a = 0; a < map_landmarks.landmark_list.size(); a++) {
-            Map::single_landmark_s curr_landmark = map_landmarks.landmark_list.at(i);
+            Map::single_landmark_s curr_landmark = map_landmarks.landmark_list.at(a);
             double distToMark = dist(curr_landmark.x_f, curr_landmark.y_f, p_i.x, p_i.y);
             if (distToMark <= sensor_range) {
                 LandmarkObs obs_in_range;
