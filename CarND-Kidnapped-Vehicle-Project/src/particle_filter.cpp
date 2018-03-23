@@ -22,13 +22,16 @@ using namespace std;
 
 
 void ParticleFilter::init(double x, double y, double theta, double std[]) {
+    cout << "init step"<< is_initialized<< endl;
+    if(is_initialized == false){
 
-    if(! is_initialized){
+        cout << "init step"<< is_initialized<< endl;
+
         default_random_engine gen;
         // Set the number of particles. Initialize all particles to first position (based on estimates of
         //   x, y, theta and their uncertainties from GPS) and all weights to 1.
         // Add random Gaussian noise to each particle.
-        num_particles = 10;
+        num_particles = 3;
 
         double std_x = std[0];
         double std_y = std[1];
@@ -51,10 +54,13 @@ void ParticleFilter::init(double x, double y, double theta, double std[]) {
         }
 
         is_initialized = true;
+
+        cout << "checing particles" << particles.at(1).id<< ","<< particles.at(2).id<< "," << particles.at(0).id<< endl;
     }
 }
 
 void ParticleFilter::prediction(double delta_t, double std_pos[], double velocity, double yaw_rate) {
+    cout << "prediction step"<< endl;
 	// update the position of each each particle and add random Gaussian noise.
     default_random_engine gen;
 
@@ -97,6 +103,9 @@ void ParticleFilter::prediction(double delta_t, double std_pos[], double velocit
 void ParticleFilter::dataAssociation(std::vector<LandmarkObs> predicted, std::vector<LandmarkObs>& observations) {
 	//  Find the predicted measurement that is closest to each observed measurement and assign the
 	//   observed measurement to this particular landmark.
+    cout << "data association"<< endl;
+    cout << "obs size"<< observations.size()<< endl;
+    cout << "pred size"<< predicted.size()<< endl;
     int closest_predicted_id = 0;
     double min_dist = 99999999; // a very high value such that should be overwritten
     for (int i = 0; i< observations.size(); i++) {
@@ -207,6 +216,8 @@ void ParticleFilter::updateWeights(double sensor_range, double std_landmark[],
 
             p_i.weight *=  1 /(2 * M_PI * std_landmark_x * std_landmark_y ) * exp( -(powx + powy));
         }
+
+        cout << "curr pi weight"<< p_i.weight<< endl;
 //
 ////            <Map::single_landmark_s> minLandmark = map_landmarks.landmark_list.at(0);
 //            double minDistance = dist(map_landmarks.landmark_list.at(0).x_f, map_landmarks.landmark_list.at(0).y_f, xm, ym);
@@ -295,6 +306,8 @@ Particle ParticleFilter::SetAssociations(Particle& particle, const std::vector<i
     particle.associations= associations;
     particle.sense_x = sense_x;
     particle.sense_y = sense_y;
+
+    return particle;
 }
 
 string ParticleFilter::getAssociations(Particle best)

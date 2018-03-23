@@ -10,6 +10,9 @@
 #define PARTICLE_FILTER_H_
 
 #include "helper_functions.h"
+#include <iostream>
+
+using namespace std;
 
 struct Particle {
 
@@ -115,6 +118,7 @@ public:
 	* initialized Returns whether particle filter is initialized yet or not.
 	*/
 	const bool initialized() const {
+        cout << "test for initalisation"<< endl;
 		return is_initialized;
 	}
 };
