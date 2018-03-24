@@ -63,7 +63,7 @@ void ParticleFilter::prediction(double delta_t, double std_pos[], double velocit
     double std_theta = std_pos[2];
 
     for (int i = 0; i< num_particles; i++) {
-
+        //if the yaw_rate is below a tiny number, assume it's zero
         if (fabs(yaw_rate) < 0.00001) {
             particles.at(i).x += velocity  * cos(particles.at(i).theta) * delta_t;
             particles.at(i).y += velocity  * sin(particles.at(i).theta) * delta_t;
@@ -84,39 +84,6 @@ void ParticleFilter::prediction(double delta_t, double std_pos[], double velocit
     }
 
 }
-
-//void ParticleFilter::dataAssociation(std::vector<LandmarkObs> predicted, std::vector<LandmarkObs>& observations) {
-//    // TODO: Find the predicted measurement that is closest to each observed measurement and assign the
-//    //   observed measurement to this particular landmark.
-//    // NOTE: this method will NOT be called by the grading code. But you will probably find it useful to
-//    //   implement this method and use it as a helper during the updateWeights phase.
-//    // Source Forum help: https://discussions.udacity.com/t/you-ran-out-of-time-when-running-with-the-simulator/269900/8
-//
-//    double distance, min_distance;
-//    int map_index;
-//
-//    for (unsigned int i = 0; i < observations.size(); i++)
-//    {
-//        LandmarkObs observation = observations[i];
-//        // Thanks to Jeremy Shanoon for teaching me about numeric_limits
-//        min_distance = 99999999;
-////        min_distance = numeric_limits<double>::max();
-//
-//        for (unsigned int j = 0; j < predicted.size(); j++)
-//        {
-//            LandmarkObs l = predicted[j];
-//            distance = dist(observation.x, observation.y, l.x, l.y);
-//
-//            if (distance < min_distance)
-//            {
-//                min_distance = distance;
-//                map_index = l.id;
-//            }
-//        }
-//        observations[i].id = map_index;
-//    }
-//
-//}
 
 void ParticleFilter::dataAssociation(std::vector<LandmarkObs> predicted, std::vector<LandmarkObs>& observations) {
 	//  Find the predicted measurement that is closest to each observed measurement and assign the
@@ -142,12 +109,11 @@ void ParticleFilter::dataAssociation(std::vector<LandmarkObs> predicted, std::ve
 
 }
 
-void ParticleFilter::updateWeights(double sensor_range, double std_landmark[], std::vector<LandmarkObs> &observations,
-                                   Map &map_landmarks) {
-//    weights.clear();
+void ParticleFilter::updateWeights(double sensor_range, double std_landmark[], const std::vector<LandmarkObs> &observations,
+                                        const Map &map_landmarks) {
     const double std_landmark_x = std_landmark[0];
     const double std_landmark_y = std_landmark[1];
-	// TODO: Update the weights of each particle using a mult-variate Gaussian distribution. You can read
+	// Update the weights of each particle using a mult-variate Gaussian distribution. You can read
 	//   more about thias distribution here: https://en.wikipedia.org/wiki/Multivariate_normal_distribution
 	// NOTE: The observations are given in the VEHICLE'S coordinate system. Your particles are located
 	//   according to the MAP'S coordinate system. You will need to transform between the two systems.
@@ -158,9 +124,12 @@ void ParticleFilter::updateWeights(double sensor_range, double std_landmark[], s
 	//   3.33
 	//   http://planning.cs.uiuc.edu/node99.html
 
+    //loop through the particles
     for (int i = 0; i< particles.size(); i++) {
+        //important: assign the p_i by reference otherwise you are not updating the particles vector
         Particle& p_i = particles.at(i);
 
+        // get the landmarks that are in the range of the sensors-- the others don't matter
         vector<LandmarkObs> landmarksInRange;
         for (int a = 0; a < map_landmarks.landmark_list.size(); a++) {
             Map::single_landmark_s curr_landmark = map_landmarks.landmark_list.at(a);
@@ -174,6 +143,7 @@ void ParticleFilter::updateWeights(double sensor_range, double std_landmark[], s
             }
         }
 
+        // transform the observations from particle coordinates to map coords
         vector<LandmarkObs> transformed_obs;
         for (int j = 0; j < observations.size(); j++) {
             LandmarkObs obs = observations.at(j);
@@ -190,6 +160,8 @@ void ParticleFilter::updateWeights(double sensor_range, double std_landmark[], s
         //the transformed_obs will each have their ids = the closest landmark's id
         dataAssociation(landmarksInRange, transformed_obs);
 
+        //reset all weights to 1 to make sure the probabilities are calculated correctly (also prevemt
+        //them from going all to zero)
         p_i.weight = 1.0;
         // find the associated landmark by looping over the landmarks in range
         for (int k = 0; k< transformed_obs.size(); k++) {
@@ -226,7 +198,7 @@ void ParticleFilter::updateWeights(double sensor_range, double std_landmark[], s
 void ParticleFilter::resample() {
     default_random_engine gen;
 	// Resample particles with replacement with probability proportional to their weight.
-	// NOTE: You may find std::discrete_distribution helpful here.
+	// using the  std::discrete_distribution from c++.
 	//   http://en.cppreference.com/w/cpp/numeric/random/discrete_distribution
     discrete_distribution<int> dist_weights(weights.begin(), weights.end());
     vector<Particle> resampled_particles;
