@@ -1,5 +1,7 @@
 .ipynb_checkpoints
 .DS_Store
+*.zip
+*.gz
 
 # build files
 build/
