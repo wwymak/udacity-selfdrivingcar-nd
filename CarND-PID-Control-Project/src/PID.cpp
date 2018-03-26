@@ -1,5 +1,6 @@
 #include "PID.h"
 #include <iostream>
+#include <tuple>
 
 using namespace std;
 
@@ -34,6 +35,7 @@ double PID::TotalError() {
 vector<double> PID::Twiddle(float tolerance){
     vector<double> params = {Kp, Ki, Kd};
     vector<double> dp = {1,1,1};
+    double err = p_error;
     double dpSum;
     for (auto& n : dp){
         dpSum += n;
@@ -46,8 +48,13 @@ vector<double> PID::Twiddle(float tolerance){
     }
 };
 
-void PID::IterRun(vector params, int steps) {
+tuple<vector, vector, double> PID::IterRun(vector params, int steps) {
     vector<double> x_trajectory = [];
     vector<double> y_trajectory = [];
+
+    double err = 0;
+
+    return make_tuple(x_trajectory, y_trajectory, err/steps);
+
 };
 

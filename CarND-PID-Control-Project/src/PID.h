@@ -2,6 +2,7 @@
 #define PID_H
 
 #include <vector>
+#include <tuple>
 
 using namespace std;
 
@@ -48,7 +49,7 @@ public:
 
     vector<double> Twiddle(float tolerance);
 
-    void IterRun(vector params, int steps);
+    tuple<vector, vector, double> IterRun(vector params, int steps);
 };
 
 #endif /* PID_H */
