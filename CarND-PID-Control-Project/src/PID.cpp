@@ -31,3 +31,23 @@ double PID::TotalError() {
     return Kp * p_error + Ki * i_error + Kd * d_error;
 }
 
+vector<double> PID::Twiddle(float tolerance){
+    vector<double> params = {Kp, Ki, Kd};
+    vector<double> dp = {1,1,1};
+    double dpSum;
+    for (auto& n : dp){
+        dpSum += n;
+    };
+    while (dpSum > tolerance) {
+        for (int i = 0; i< dp.size(); i++) {
+            params.at(i) += dp.at(i);
+            IterRun(params, 50);
+        }
+    }
+};
+
+void PID::IterRun(vector params, int steps) {
+    vector<double> x_trajectory = [];
+    vector<double> y_trajectory = [];
+};
+
