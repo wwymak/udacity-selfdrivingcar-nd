@@ -22,6 +22,15 @@ public:
     double Ki;
     double Kd;
 
+    double curr_timestep;
+
+    bool is_optimised = false;
+
+    double twiddle_err_threshold;
+    int curr_twiddle_iter;
+    double best_error;
+    vector<double> twiddle_dp;
+
     /*
     * Constructor
     */
@@ -47,9 +56,11 @@ public:
     */
     double TotalError();
 
+    void TwiddleUpate();
+
     vector<double> Twiddle(float tolerance);
 
-    tuple<vector, vector, double> IterRun(vector params, int steps);
+    tuple<vector, vector, double> Iter(vector params, int steps);
 };
 
 #endif /* PID_H */

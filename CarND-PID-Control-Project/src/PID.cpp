@@ -1,6 +1,7 @@
 #include "PID.h"
 #include <iostream>
 #include <tuple>
+#include <cmath>
 
 using namespace std;
 
@@ -20,12 +21,27 @@ void PID::Init(double Kp, double Ki, double Kd) {
     d_error = 0;
     i_error = 0;
     p_error = 0;
+
+    curr_timestep=0;
+    curr_twiddle_iter = 0; //which param you are updating
+    twiddle_err_threshold = 0.01;
+    twiddle_dp = {1,1,1};
+
+    best_error = 99999;
+
 }
 
 void PID::UpdateError(double cte) {
     i_error += cte;
     d_error = cte - p_error;
     p_error = cte;
+
+    if(best_error < twiddle_err_threshold) {
+        is_optimised = true;
+    } else if(fmod(curr_timestep,10) == 0) {
+        TwiddleUpate();
+        curr_twiddle_iter = (curr_twiddle_iter += 1) % 3;
+    }
 }
 
 double PID::TotalError() {
@@ -43,18 +59,36 @@ vector<double> PID::Twiddle(float tolerance){
     while (dpSum > tolerance) {
         for (int i = 0; i< dp.size(); i++) {
             params.at(i) += dp.at(i);
-            IterRun(params, 50);
+            Iter(params, 50);
         }
     }
 };
 
-tuple<vector, vector, double> PID::IterRun(vector params, int steps) {
-    vector<double> x_trajectory = [];
-    vector<double> y_trajectory = [];
+void PID::TwiddleUpate(){
+    double& paramToUpdate = Kp;
+    if(curr_twiddle_iter == 1) {
+        paramToUpdate = Ki;
+    } else if(curr_twiddle_iter == 2) {
+        paramToUpdate = Kd;
+    }
 
-    double err = 0;
+    if(p_error < best_error) {
+        best_error = p_error;
+        twiddle_dp.at(curr_twiddle_iter) *= 1.1;
+    } else {
+        paramToUpdate -= 2* twiddle_dp.at(curr_twiddle_iter);
+        twiddle_dp.at(curr_twiddle_iter) *= 0.9;
+    }
 
-    return make_tuple(x_trajectory, y_trajectory, err/steps);
-
-};
+//    curr_twiddle_iter
+}
+//tuple<vector, vector, double> PID::Iter(vector params, int steps) {
+//    vector<double> x_trajectory = [];
+//    vector<double> y_trajectory = [];
+//
+//    double err = 0;
+//
+//    return make_tuple(x_trajectory, y_trajectory, err/steps);
+//
+//};
 

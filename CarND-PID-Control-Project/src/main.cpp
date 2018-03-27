@@ -69,6 +69,7 @@ int main(int argc, char *argv[])
                     * another PID controller to control the speed!
                     */
                     cout << angle<< "angle"<< endl;
+                    pid.curr_timestep += 1;
                     pid.UpdateError(cte);
                     steer_value = -pid.TotalError();
                     if(steer_value > 1) {
