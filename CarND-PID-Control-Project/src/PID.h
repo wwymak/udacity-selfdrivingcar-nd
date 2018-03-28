@@ -60,7 +60,7 @@ public:
 
     vector<double> Twiddle(float tolerance);
 
-    tuple<vector, vector, double> Iter(vector params, int steps);
+//    tuple<vector, vector, double> Iter(vector params, int steps);
 };
 
 #endif /* PID_H */
