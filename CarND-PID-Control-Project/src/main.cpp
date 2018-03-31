@@ -13,10 +13,7 @@ constexpr double pi() { return M_PI; }
 double deg2rad(double x) { return x * pi() / 180; }
 double rad2deg(double x) { return x * 180 / pi(); }
 
-//double Kp = 0.5;
-//double Ki = 0;
-//double Kd = 0.2;
-//okay coeffs p:0.25 i:0 d:0.9
+//okay coeffs p:0.23 i:0 d:1.0
 
 // Checks if the SocketIO event has JSON data.
 // If there is data the JSON object in string format will be returned,
@@ -69,7 +66,7 @@ int main(int argc, char *argv[])
                     * another PID controller to control the speed!
                     */
                     cout << angle<< "angle"<< endl;
-                    pid.UpdateError(cte);
+                    pid.UpdateError(cte, angle);
                     steer_value = -pid.TotalError();
                     if(steer_value > 1) {
                         steer_value = -1;
