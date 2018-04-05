@@ -6,9 +6,9 @@
 using CppAD::AD;
 
 //todo might want to tune this
-size_t N = 10;
+size_t N = 15;
 //too small will be too ocmputational expensive
-double dt = 0.1;
+double dt = 0.05;
 
 // This value assumes the model presented in the classroom is used.
 //
@@ -36,6 +36,14 @@ size_t epsi_start = cte_start + N;
 size_t delta_start = epsi_start + N;
 size_t a_start = delta_start + N - 1;
 
+double v_cost_weight = 1.0;
+double cte_cost_weight = 2.0;
+double epsi_cost_weight = 2.0;
+double delta_cost_weight = 1.0;
+double accel_cost_weight = 1.0;
+double delta_change_cost_weight = 1.0;
+double accel_change_cost_weight = 0.5;
+
 class FG_eval {
 public:
     // Fitted polynomial coefficients
@@ -50,24 +58,24 @@ public:
         // the Solver function below.
 
         //init cost
-        fg[0] = 0;
+        fg[0] = 0.0;
 
         //errors in desired state vs actual
         for  (int t = 0; t< N; t++) {
-            fg[0] += 100 * CppAD::pow(vars[v_start + t] -ref_v, 2);
-            fg[0] += 100 * CppAD::pow(vars[cte_start + t] - ref_cte, 2);
-            fg[0] += 100 * CppAD::pow(vars[epsi_start + t] - ref_epsi, 2);
+            fg[0] += v_cost_weight * CppAD::pow(vars[v_start + t] -ref_v, 2);
+            fg[0] += cte_cost_weight * CppAD::pow(vars[cte_start + t] - ref_cte, 2);
+            fg[0] += epsi_cost_weight * CppAD::pow(vars[epsi_start + t] - ref_epsi, 2);
         }
 
         //minize delta angle changes and acceleration
         for  (int t = 0; t< N -1; t++) {
-            fg[0] += 5 * CppAD::pow(vars[delta_start+ t], 2);
-            fg[0] += 5 * CppAD::pow(vars[a_start + t], 2);
+            fg[0] += delta_cost_weight * CppAD::pow(vars[delta_start+ t], 2);
+            fg[0] += accel_cost_weight * CppAD::pow(vars[a_start + t], 2);
         }
         //minize changes in acceleration
         for  (int t = 0; t< N -2; t++) {
-            fg[0] += CppAD::pow(vars[delta_start + t + 1] - vars[delta_start + t], 2);
-            fg[0] += CppAD::pow(vars[a_start + t + 1] - vars[a_start + t ], 2);
+            fg[0] += delta_change_cost_weight * CppAD::pow(vars[v_start] *(vars[delta_start + t + 1] - vars[delta_start + t])/dt, 2);
+            fg[0] += accel_change_cost_weight * CppAD::pow((vars[a_start + t + 1] - vars[a_start + t ])/dt, 2);
         }
         cout << "fg0== cost"<< fg[0]<< endl;
         //vehicle model:
@@ -102,7 +110,8 @@ public:
             AD<double> a0 = vars[a_start + t];
 
             //todo check for polyfit to degree 2 instead
-            AD<double> f0 = coeffs[0] + coeffs[1] * x0  + coeffs[2] * x0 * x0 + coeffs[3] * x0 * x0 * x0;
+            AD<double> f0 = coeffs[0] + coeffs[1] * x1  + coeffs[2] * x1 * x1 + coeffs[3] * CppAD::pow(x1,3);
+//            AD<double> f0 = coeffs[0] + coeffs[1] * x0  + coeffs[2] * x0 * x0 + coeffs[3] * x0 * x0 * x0;
             AD<double> psi_desired = CppAD::atan(coeffs[1] + 2 * coeffs[2] * x0 + 3 * coeffs[3] * x0 * x0);
 
             fg[1 + x_start + t + 1] = x1 - (x0 + v0 * CppAD::cos(psi0) * dt);
