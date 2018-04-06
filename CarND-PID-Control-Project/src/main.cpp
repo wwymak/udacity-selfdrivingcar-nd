@@ -1,5 +1,7 @@
 #include <uWS/uWS.h>
 #include <iostream>
+#include <fstream>
+#include <string>
 #include "json.hpp"
 #include "PID.h"
 #include <math.h>
@@ -17,6 +19,7 @@ double rad2deg(double x) { return x * 180 / pi(); }
 //double Ki = 0;
 //double Kd = 0.2;
 //okay coeffs p:0.25 i:0 d:0.9
+//okay coeffs p:0.10 i:0 d:1.0
 
 // Checks if the SocketIO event has JSON data.
 // If there is data the JSON object in string format will be returned,
@@ -39,14 +42,30 @@ int main(int argc, char *argv[])
     uWS::Hub h;
 
     PID pid;
+    PID pid_v;
 
     double Kp = atof(argv[1]);
     double Ki = atof(argv[2]);
     double Kd = atof(argv[3]);
 
-    pid.Init(Kp, Ki, Kd);
+    double Kp_v = atof(argv[4]);
+    double Ki_v = atof(argv[5]);
+    double Kd_v = atof(argv[6]);
 
-    h.onMessage([&pid](uWS::WebSocket<uWS::SERVER> ws, char *data, size_t length, uWS::OpCode opCode) {
+    double target_speed = 60.0;
+    double min_speed = 30.0;
+
+    ofstream logfile;
+    auto filename = "./../tuning_logs/pid-p=" + to_string(Kp).substr (0,3) + "Ki=" + to_string(Ki).substr (0,3) + "Kd=" + to_string(Kd).substr (0,3)
+                    + "pidv-p=" + to_string(Kp_v).substr (0,3) + "Ki=" + to_string(Ki_v).substr (0,3) + "Kd=" + to_string(Kd_v).substr (0,3);
+    logfile.open(filename);
+    logfile << "cte,steer,angle\n";
+
+
+    pid.Init(Kp, Ki, Kd);
+    pid_v.Init(Kp_v, Ki_v, Kd_v);
+
+    h.onMessage([&pid, &pid_v, &target_speed, &logfile](uWS::WebSocket<uWS::SERVER> ws, char *data, size_t length, uWS::OpCode opCode) {
         // "42" at the start of the message means there's a websocket message event.
         // The 4 signifies a websocket message
         // The 2 signifies a websocket event
@@ -62,6 +81,7 @@ int main(int argc, char *argv[])
                     double speed = std::stod(j[1]["speed"].get<std::string>());
                     double angle = std::stod(j[1]["steering_angle"].get<std::string>());
                     double steer_value;
+                    double throttle_val;
                     /*
                     * TODO: Calcuate steering value here, remember the steering value is
                     * [-1, 1].
@@ -70,19 +90,37 @@ int main(int argc, char *argv[])
                     */
                     cout << angle<< "angle"<< endl;
                     pid.UpdateError(cte);
+                    pid_v.UpdateError(speed - target_speed);
                     steer_value = -pid.TotalError();
+                    throttle_val = -pid_v.TotalError();
+                    //stop accelerating now as the car is moving out of the track
+                    if (fabs(cte) > 1.5) {
+                        throttle_val = 0;
+                    }
+                    // car oscillating far too much, have to brake
+                    if (fabs(cte) > 5.0) {
+                        throttle_val = -1.0;
+                    }
+
+
                     if(steer_value > 1) {
                         steer_value = -1;
                     } else if (steer_value < -1) {
                         steer_value = 1;
                     }
+                    if(throttle_val > 1) {
+                        throttle_val = 1;
+                    } else if (throttle_val < -1) {
+                        throttle_val = -1;
+                    }
 //                    steer_value = angle + deg2rad(- pid.Kp * pid.d_error - pid.Ki * pid.i_error - pid.Kd * pid.d_error);
                     // DEBUG
                     std::cout << "CTE: " << cte << " Steering Value: " << steer_value << std::endl;
-
+                    logfile<<cte<<","<< steer_value <<"," << angle << "\n" ;
                     json msgJson;
                     msgJson["steering_angle"] = steer_value;
-                    msgJson["throttle"] = 0.3;
+                    msgJson["throttle"] = throttle_val;
+//                    msgJson["throttle"] = 0.3;
                     auto msg = "42[\"steer\"," + msgJson.dump() + "]";
                     std::cout << msg << std::endl;
                     ws.send(msg.data(), msg.length(), uWS::OpCode::TEXT);
