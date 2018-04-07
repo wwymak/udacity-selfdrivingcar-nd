@@ -20,6 +20,7 @@ double rad2deg(double x) { return x * 180 / pi(); }
 //double Kd = 0.2;
 //okay coeffs p:0.25 i:0 d:0.9
 //okay coeffs p:0.10 i:0 d:1.0
+//okay coeffs p0.15 i0 d1.6 pv0.1 pi0 pd0.5
 
 // Checks if the SocketIO event has JSON data.
 // If there is data the JSON object in string format will be returned,
@@ -102,7 +103,9 @@ int main(int argc, char *argv[])
                         throttle_val = -1.0;
                     }
 
-
+                    //this is deliberate, not an error in the code-- basically if your steervalue is at an
+                    //extreme is likely that the pid controller is heavily overcompensating so rather than keeping
+                    //the car turning in a sharp angle the opposite sign helps to straighten the car
                     if(steer_value > 1) {
                         steer_value = -1;
                     } else if (steer_value < -1) {
