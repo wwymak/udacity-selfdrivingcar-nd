@@ -4,7 +4,11 @@
 using namespace std;
 
 /*
-* TODO: Complete the PID class.
+* PID class.
+ * Nothing fancy here, just need to set the Kp, Ki and Kd terms,
+ * implemennt the method to calculate the corrective term, and also a method
+ * to keep track of the cumulated error and error at previous timestep to
+ * calculate the Kd and Ki terms
 */
 
 PID::PID() {}

@@ -3,3 +3,4 @@ build
 tags
 .editorconfig
 socket_listener
+./tuning_logs

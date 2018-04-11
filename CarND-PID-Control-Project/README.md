@@ -87,7 +87,9 @@ Then in the project root directory, run:
 2. cd build
 3. cmake ..
 4. make
-5. ./pid 
+5. ./pid (with the default good pid params) _or_  `./pid 0.15 0.0 2.0 0.25 0 0.7 ` if you want to 
+supply your own pid params-- the first 3 terms are the Kp, Ki, Kd terms for the steering angle control, 
+the last 3 terms the Kp, Ki, Kd terms for setting the throttle to get to the desired speed
 6. Launch simulator and see how the green(predictions) matches 
 against the measurments
 

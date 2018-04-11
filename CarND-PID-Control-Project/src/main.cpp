@@ -45,13 +45,29 @@ int main(int argc, char *argv[])
     PID pid;
     PID pid_v;
 
-    double Kp = atof(argv[1]);
-    double Ki = atof(argv[2]);
-    double Kd = atof(argv[3]);
+    double Kp;
+    double Ki;
+    double Kd;
+    double Kp_v;
+    double Ki_v;
+    double Kd_v;
 
-    double Kp_v = atof(argv[4]);
-    double Ki_v = atof(argv[5]);
-    double Kd_v = atof(argv[6]);
+    if (argc < 2) {
+        Kp = 0.15;
+        Ki=0.0;
+        Kd = 2.0;
+        Kp_v = 0.1;
+        Ki_v = 0.0;
+        Kd_v = 0.5;
+    } else {
+        Kp = atof(argv[1]);
+        Ki = atof(argv[2]);
+        Kd = atof(argv[3]);
+        Kp_v = atof(argv[4]);
+        Ki_v = atof(argv[5]);
+        Kd_v = atof(argv[6]);
+    }
+
 
     double target_speed = 60.0;
     double min_speed = 30.0;
