@@ -100,12 +100,12 @@ int main(int argc, char *argv[])
                     double steer_value;
                     double throttle_val;
                     /*
-                    * TODO: Calcuate steering value here, remember the steering value is
+                    * Calcuate steering value here, remember the steering value is
                     * [-1, 1].
                     * NOTE: Feel free to play around with the throttle and speed. Maybe use
                     * another PID controller to control the speed!
                     */
-                    cout << angle<< "angle"<< endl;
+                    //cout << angle<< "angle"<< endl;
                     pid.UpdateError(cte);
                     pid_v.UpdateError(speed - target_speed);
                     steer_value = -pid.TotalError();
@@ -134,14 +134,15 @@ int main(int argc, char *argv[])
                     }
 //                    steer_value = angle + deg2rad(- pid.Kp * pid.d_error - pid.Ki * pid.i_error - pid.Kd * pid.d_error);
                     // DEBUG
-                    std::cout << "CTE: " << cte << " Steering Value: " << steer_value << std::endl;
-                    logfile<<cte<<","<< steer_value <<"," << angle << "\n" ;
+                    //std::cout << "CTE: " << cte << " Steering Value: " << steer_value << std::endl;
+                    //logfile<<cte<<","<< steer_value <<"," << angle << "\n" ;
+
                     json msgJson;
                     msgJson["steering_angle"] = steer_value;
                     msgJson["throttle"] = throttle_val;
 //                    msgJson["throttle"] = 0.3;
                     auto msg = "42[\"steer\"," + msgJson.dump() + "]";
-                    std::cout << msg << std::endl;
+                    //std::cout << msg << std::endl;
                     ws.send(msg.data(), msg.length(), uWS::OpCode::TEXT);
 
 
