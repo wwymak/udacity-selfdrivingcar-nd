@@ -98,11 +98,15 @@ Make the car go faster:
 - more fine tuning of pid parameters might help the car stay on track better at a higher speed-- at the current parameters,
 setting a target speed higher than the 60mph causes the car to oscillate at a higher amplitude and ended up in it veering 
 off the road
+
 Autotuning:
 - there are various methods/papers around autotuning PID controllers. However, most of them seems to require
 an artificial stimulation of the car controls and measure it's behaviour, which I find unintutive to try in this case 
 since if the car drives off the track in the simulation it's hard to have any meaningful measurements. I also tested 
 an implementation of the Twiddle algorithm, with each iteration corresponding to a certain number of timesteps.
 
-however, the algorithm assumes you can go round the same set of 
+However, the algorithm assumes you can go round the same set of 
 conditions, ie starting from the start point, which I would not be able to do automatically.
+
+It would also be interesting to explore newer tuning methods such as [this](https://www.ncbi.nlm.nih.gov/pmc/articles/PMC5038707/)
+neural network based PID controller
