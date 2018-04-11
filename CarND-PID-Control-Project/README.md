@@ -17,11 +17,16 @@ The following equation (source: [wikipedia](https://en.wikipedia.org/wiki/PID_co
 
 ![](https://wikimedia.org/api/rest_v1/media/math/render/svg/69072d4013ea8f14ab59a8283ef216fb958870b2)
 
+The Kp term is proportional to the cross check error, so when the error increases, the Kp term helps to drive
+the controller to make the car go the opposite way.
 
+However, the Kp term is linear, so it causes the system to overshoot it's set point and oscillate. This is 
+reduced by the Kd term, which is proportional to the change in error-- when the change in error drops, the corrective
+forces also drops, which reduces the amount by which the controller overshoots.
 
-//todo** explain what are the contributions fo the 3 terms
-
-
+The Ki term may or may not be necessary-- it helps in removing any errors that remain after the Kp and Kd terms are applied.
+But since it gets bigger and bigger over time if small amounts of error remain, it can actually make the oscillations worse as 
+the overall corrective term gets large.
 
 ---
 ### Tuning PID parameters
@@ -59,7 +64,7 @@ A good set of parameters I found for the PID controller for the throttle is (usi
 ----
 
 ### Project output
-
+Can be viewed at this [youtube link](https://youtu.be/RHsDqGic7qc)
 
 ### Project code
 
@@ -90,8 +95,14 @@ against the measurments
 
 #### Thoughts and future work
 Make the car go faster:
-- more fine tuning of pid parameters might 
+- more fine tuning of pid parameters might help the car stay on track better at a higher speed-- at the current parameters,
+setting a target speed higher than the 60mph causes the car to oscillate at a higher amplitude and ended up in it veering 
+off the road
 Autotuning:
 - there are various methods/papers around autotuning PID controllers. However, most of them seems to require
 an artificial stimulation of the car controls and measure it's behaviour, which I find unintutive to try in this case 
-since if the car drives off the track in the simulation it's hard to have any meaningful measurements. 
+since if the car drives off the track in the simulation it's hard to have any meaningful measurements. I also tested 
+an implementation of the Twiddle algorithm, with each iteration corresponding to a certain number of timesteps.
+
+however, the algorithm assumes you can go round the same set of 
+conditions, ie starting from the start point, which I would not be able to do automatically.
