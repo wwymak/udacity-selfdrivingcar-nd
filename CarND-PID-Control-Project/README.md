@@ -87,7 +87,7 @@ Then in the project root directory, run:
 2. cd build
 3. cmake ..
 4. make
-5. ./pid (with the default good pid params) _or_  `./pid 0.15 0.0 2.0 0.25 0 0.7 ` if you want to 
+5. ./pid (with the default good pid params) _or_ e.g. `./pid 0.15 0.0 2.0 0.25 0 0.7 ` if you want to 
 supply your own pid params-- the first 3 terms are the Kp, Ki, Kd terms for the steering angle control, 
 the last 3 terms the Kp, Ki, Kd terms for setting the throttle to get to the desired speed
 6. Launch simulator and see how the green(predictions) matches 
@@ -96,12 +96,13 @@ against the measurments
 ---
 
 #### Thoughts and future work
-Make the car go faster:
+
+#####Make the car go faster:
 - more fine tuning of pid parameters might help the car stay on track better at a higher speed-- at the current parameters,
 setting a target speed higher than the 60mph causes the car to oscillate at a higher amplitude and ended up in it veering 
 off the road
 
-Autotuning:
+#####Autotuning:
 - there are various methods/papers around autotuning PID controllers. However, most of them seems to require
 an artificial stimulation of the car controls and measure it's behaviour, which I find unintutive to try in this case 
 since if the car drives off the track in the simulation it's hard to have any meaningful measurements. I also tested 
@@ -111,4 +112,4 @@ However, the algorithm assumes you can go round the same set of
 conditions, ie starting from the start point, which I would not be able to do automatically.
 
 It would also be interesting to explore newer tuning methods such as [this](https://www.ncbi.nlm.nih.gov/pmc/articles/PMC5038707/)
-neural network based PID controller
+neural network based PID controller.
