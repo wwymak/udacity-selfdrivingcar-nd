@@ -42,7 +42,7 @@ The parameters were manually tuned until the car has the desired behaviour of st
    In this case, I found this term unecessary to keep the car driving successfully round the track.
    
    A good set of parameters I found for the PID controller for the driving angle is 
-   > Kp = 0.15 Ki = 0 Kd = 1.6
+   > Kp = 0.15 Ki = 0 Kd = 1.8
    
 To make the car drive faster, I also used a PID controller for the throttle to keep the speed at the target 60mph, with 
 the following condition-- if the error from road center is starting to get high, slow the car down (throttle = 0), and if it's really high, 
@@ -113,3 +113,8 @@ conditions, ie starting from the start point, which I would not be able to do au
 
 It would also be interesting to explore newer tuning methods such as [this](https://www.ncbi.nlm.nih.gov/pmc/articles/PMC5038707/)
 neural network based PID controller.
+
+##### Online manual tuning
+It would be interesting to make an application that can sit between the PID controller and the simulator that 
+can listen on the signals between them and use this to do real time charting of the cte errors. Also, if I can use 
+this to feed in an extra manual controls to change the PID params this would be really useful for tuning.

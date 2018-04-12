@@ -69,7 +69,7 @@ int main(int argc, char *argv[])
     }
 
 
-    double target_speed = 60.0;
+    double target_speed = 55.0;
     double min_speed = 30.0;
 
     ofstream logfile;
@@ -124,16 +124,8 @@ int main(int argc, char *argv[])
                     //the car turning in a sharp angle the opposite sign helps to straighten the car
                     if(steer_value > 1) {
                         steer_value = -1;
-                        // add in a bit of intuitiion-- when you're driving, you generally slow down a bit going
-                        //round turns
-                        if (throttle_val > 0) {
-                            throttle_val *= 0.7;
-                        }
                     } else if (steer_value < -1) {
                         steer_value = 1;
-                        if (throttle_val > 0) {
-                            throttle_val *= 0.7;
-                        }
                     }
                     if(throttle_val > 1) {
                         throttle_val = 1;
