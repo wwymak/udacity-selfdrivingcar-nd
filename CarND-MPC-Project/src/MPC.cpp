@@ -52,7 +52,7 @@ public:
 
     typedef CPPAD_TESTVECTOR(AD<double>) ADvector;
     void operator()(ADvector& fg, const ADvector& vars) {
-        // TODO: implement MPC
+        //  implement MPC
         // `fg` a vector of the cost constraints, `vars` is a vector of variable values (state & actuators)
         // NOTE: You'll probably go back and forth between this function and
         // the Solver function below.
@@ -77,7 +77,8 @@ public:
             fg[0] += delta_change_cost_weight * CppAD::pow(vars[v_start] *(vars[delta_start + t + 1] - vars[delta_start + t])/dt, 2);
             fg[0] += accel_change_cost_weight * CppAD::pow((vars[a_start + t + 1] - vars[a_start + t ])/dt, 2);
         }
-        cout << "fg0== cost"<< fg[0]<< endl;
+//        cout << "fg0== cost"<< fg[0]<< endl;
+
         //vehicle model:
         fg[1 + x_start] = vars[x_start];
         fg[1 + y_start] = vars[y_start];
@@ -85,8 +86,6 @@ public:
         fg[1 + v_start] = vars[v_start];
         fg[1 + cte_start] = vars[cte_start];
         fg[1 + epsi_start] = vars[epsi_start];
-//        fg[1 + delta_start] = vars[delta_start];
-//        fg[1 + a_start] = vars[a_start];
 
         // The rest of the constraints
         for (int t = 0; t < N-1; t++) {
@@ -136,7 +135,7 @@ vector<double> MPC::Solve(Eigen::VectorXd state, Eigen::VectorXd coeffs) {
     size_t i;
     typedef CPPAD_TESTVECTOR(double) Dvector;
 
-    cout << "coeffs at mpc solve"<< coeffs[0] <<","<<coeffs[1]<< ","<< coeffs[2]<< endl;
+//    cout << "coeffs at mpc solve"<< coeffs[0] <<","<<coeffs[1]<< ","<< coeffs[2]<< endl;
 
     double x = state[0];
     double y = state[1];
@@ -145,13 +144,13 @@ vector<double> MPC::Solve(Eigen::VectorXd state, Eigen::VectorXd coeffs) {
     double cte = state[4];
     double epsi = state[5];
 
-    cout<< "states"<<endl;
-    cout<< "x:" << x << endl;
-    cout<< "y:" << y << endl;
-    cout<< "psi:" << psi << endl;
-    cout<< "v:" << v << endl;
-    cout<< "cte:" << cte << endl;
-    cout<< "epsi:" << epsi << endl;
+//    cout<< "states"<<endl;
+//    cout<< "x:" << x << endl;
+//    cout<< "y:" << y << endl;
+//    cout<< "psi:" << psi << endl;
+//    cout<< "v:" << v << endl;
+//    cout<< "cte:" << cte << endl;
+//    cout<< "epsi:" << epsi << endl;
 
     // TODO: Set the number of model variables (includes both states and inputs).
     // For example: If the state is a 4 element vector, the actuators is a 2
@@ -177,7 +176,6 @@ vector<double> MPC::Solve(Eigen::VectorXd state, Eigen::VectorXd coeffs) {
 
     Dvector vars_lowerbound(n_vars);
     Dvector vars_upperbound(n_vars);
-    // TODO: Set lower and upper limits for variables.
 
     // Set all non-actuators upper and lowerlimits
     // -- max negative and positive values.
@@ -241,7 +239,7 @@ vector<double> MPC::Solve(Eigen::VectorXd state, Eigen::VectorXd coeffs) {
 
     // NOTE: Currently the solver has a maximum time limit of 0.5 seconds.
     // Change this as you see fit.
-    options += "Numeric max_cpu_time          3.5\n";
+    options += "Numeric max_cpu_time          3.0\n";
 
     // place to return solution
     CppAD::ipopt::solve_result<Dvector> solution;
@@ -255,21 +253,21 @@ vector<double> MPC::Solve(Eigen::VectorXd state, Eigen::VectorXd coeffs) {
     ok &= solution.status == CppAD::ipopt::solve_result<Dvector>::success;
 
     // Cost
-    auto cost = solution.obj_value;
-    std::cout << "Cost " << cost << std::endl;
+    //auto cost = solution.obj_value;
+    //std::cout << "Cost " << cost << std::endl;
 
     vector<double> outputs = {};
     outputs.push_back(solution.x[delta_start]);
     outputs.push_back(solution.x[a_start]);
 
-    cout << "solution solution.x[delta_start]" << solution.x[delta_start]<< endl;
-    cout << "solution solution.x[a_start]" << solution.x[a_start]<< endl;
+//    cout << "solution solution.x[delta_start]" << solution.x[delta_start]<< endl;
+//    cout << "solution solution.x[a_start]" << solution.x[a_start]<< endl;
     for (int t = 0; t< N-1; t++) {
         outputs.push_back(solution.x[x_start+ t + 1]);
         outputs.push_back(solution.x[y_start+ t + 1]);
 
-        cout << "solution solution.x[x_start+ t + 1]" << solution.x[x_start+ t + 1]<< endl;
-        cout << "solution solution.x[y_start+ t + 1]" << solution.x[y_start+ t + 1]<< endl;
+//        cout << "solution solution.x[x_start+ t + 1]" << solution.x[x_start+ t + 1]<< endl;
+//        cout << "solution solution.x[y_start+ t + 1]" << solution.x[y_start+ t + 1]<< endl;
     }
     return outputs;
 }

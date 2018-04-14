@@ -79,7 +79,7 @@ int main() {
         // The 4 signifies a websocket message
         // The 2 signifies a websocket event
         string sdata = string(data).substr(0, length);
-        cout << sdata << endl;
+//        cout << sdata << endl;
         if (sdata.size() > 2 && sdata[0] == '4' && sdata[1] == '2') {
             string s = hasData(sdata);
             if (s != "") {
@@ -116,7 +116,6 @@ int main() {
                     }
 
                     auto coeffs = polyfit(ptsx_vector, ptsy_vector, 3) ;
-                    cout << "coeffs"<< coeffs[0] <<","<<coeffs[1]<< ","<< coeffs[2]<< endl;
                     double cte = polyeval(coeffs, 0);
                     double epsi = -atan(coeffs[1]);
 
@@ -152,7 +151,6 @@ int main() {
                         }
                     }
 
-                    cout << "MPCx" << mpc_x_vals.at(5)<< endl;
                     /*
                     * Calculate steering angle and throttle using MPC.
                     * Both are in between [-1, 1].
@@ -189,14 +187,14 @@ int main() {
 
 
                     auto msg = "42[\"steer\"," + msgJson.dump() + "]";
-                    std::cout << msg << std::endl;
+//                    std::cout << msg << std::endl;
                     // Latency
                     // The purpose is to mimic real driving conditions where
                     // the car does actuate the commands instantly.
                     //
                     // Feel free to play around with this value but should be to drive
                     // around the track with 100ms latency.
-                    //
+                    //TODO
                     // NOTE: REMEMBER TO SET THIS TO 100 MILLISECONDS BEFORE
                     // SUBMITTING.
 
