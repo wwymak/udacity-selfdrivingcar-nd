@@ -8,16 +8,18 @@
 #include "Eigen-3.3/Eigen/QR"
 #include "MPC.h"
 #include "json.hpp"
+#include "utils.h"
 
 // for convenience
 using json = nlohmann::json;
 using namespace Eigen;
 using namespace std;
+const double latency = 0.1; //in seconds
 
 // For converting back and forth between radians and degrees.
-constexpr double pi() { return M_PI; }
-double deg2rad(double x) { return x * pi() / 180; }
-double rad2deg(double x) { return x * 180 / pi(); }
+//constexpr double pi() { return M_PI; }
+//double deg2rad(double x) { return x * pi() / 180; }
+//double rad2deg(double x) { return x * 180 / pi(); }
 
 // Checks if the SocketIO event has JSON data.
 // If there is data the JSON object in string format will be returned,
@@ -32,39 +34,6 @@ string hasData(string s) {
         return s.substr(b1, b2 - b1 + 2);
     }
     return "";
-}
-
-// Evaluate a polynomial.
-double polyeval(Eigen::VectorXd coeffs, double x) {
-    double result = 0.0;
-    for (int i = 0; i < coeffs.size(); i++) {
-        result += coeffs[i] * pow(x, i);
-    }
-    return result;
-}
-
-// Fit a polynomial.
-// Adapted from
-// https://github.com/JuliaMath/Polynomials.jl/blob/master/src/Polynomials.jl#L676-L716
-Eigen::VectorXd polyfit(Eigen::VectorXd xvals, Eigen::VectorXd yvals,
-                        int order) {
-    assert(xvals.size() == yvals.size());
-    assert(order >= 1 && order <= xvals.size() - 1);
-    Eigen::MatrixXd A(xvals.size(), order + 1);
-
-    for (int i = 0; i < xvals.size(); i++) {
-        A(i, 0) = 1.0;
-    }
-
-    for (int j = 0; j < xvals.size(); j++) {
-        for (int i = 0; i < order; i++) {
-            A(j, i + 1) = A(j, i) * xvals(j);
-        }
-    }
-
-    auto Q = A.householderQr();
-    auto result = Q.solve(yvals);
-    return result;
 }
 
 int main() {
@@ -93,6 +62,18 @@ int main() {
                     double py = j[1]["y"];
                     double psi = j[1]["psi"];
                     double v = j[1]["speed"];
+                    double steer_value = j[1]["steering_angle"];
+                    double throttle_value = j[1]["throttle"];
+
+                    VectorXd oldstate(8);
+                    oldstate << px, py, psi, mileph2meterps(v), 0,0, steer_value, throttle_value;
+                    VectorXd newState(6);
+                    newState = estimateState(oldstate, latency);
+                    px = newState(0);
+                    py = newState(1);
+                    psi = newState(2);
+                    v = meterps2mileph(newState(3));
+
 
                     VectorXd ptsx_vector(ptsx.size());
                     VectorXd ptsy_vector(ptsx.size());
@@ -102,7 +83,7 @@ int main() {
 
                     //converts the waypoints to the vehicle reference frame
                     // so x, y = 0
-                    for (int i =0; i< ptsx.size(); i++) {
+                    for (size_t i =0; i< ptsx.size(); i++) {
                         //shift the coordinates
                         double car_x = ptsx.at(i) - px;
                         double car_y = ptsy.at(i) - py;
@@ -118,12 +99,15 @@ int main() {
                     auto coeffs = polyfit(ptsx_vector, ptsy_vector, 3) ;
                     double cte = polyeval(coeffs, 0);
                     double epsi = -atan(coeffs[1]);
+                    double rCurve = radiusOfCurvature(coeffs, px);
 
-                    double steer_value = j[1]["steering_angle"];
-                    double throttle_value = j[1]["throttle"];
+//                    cout << "rcurve"<< rCurve<< endl;
 
-                    VectorXd state(6);
-                    state << 0, 0, 0, v, cte, epsi;
+                    VectorXd state(7);
+                    state << 0, 0, 0, v, cte, epsi, rCurve;
+
+//                    VectorXd state(6);
+//                    state << 0, 0, 0, v, cte, epsi;
 
                     auto vars = mpc.Solve(state, coeffs);
                     //for debugging
@@ -143,7 +127,7 @@ int main() {
                     vector<double> mpc_x_vals;
                     vector<double> mpc_y_vals;
 
-                    for (int i = 2; i < vars.size(); i++) {
+                    for (size_t i = 2; i < vars.size(); i++) {
                         if(i % 2 == 0){
                             mpc_x_vals.push_back(vars.at(i));
                         } else {

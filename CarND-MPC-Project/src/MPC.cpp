@@ -2,11 +2,11 @@
 #include <cppad/cppad.hpp>
 #include <cppad/ipopt/solve.hpp>
 #include "Eigen-3.3/Eigen/Core"
+#include "utils.h"
 
 using CppAD::AD;
 
-//todo might want to tune this
-size_t N = 15;
+size_t N = 25;
 //too small will be too ocmputational expensive
 double dt = 0.05;
 
@@ -20,12 +20,13 @@ double dt = 0.05;
 // presented in the classroom matched the previous radius.
 //
 // This is the length from front to CoG that has a similar radius.
-const double Lf = 2.67;
+//const double Lf = 2.67;
 
-//te target cte, steering angle err, target speed
+//te target cte, steering angle err, target speed (although, the target speed changes depending on
+//whether the car is going round a curve or not)
 double ref_cte = 0;
 double ref_epsi = 0;
-double ref_v = 40;
+double ref_v = 90;
 
 size_t x_start = 0;
 size_t y_start = x_start + N;
@@ -37,8 +38,8 @@ size_t delta_start = epsi_start + N;
 size_t a_start = delta_start + N - 1;
 
 double v_cost_weight = 1.0;
-double cte_cost_weight = 2.0;
-double epsi_cost_weight = 2.0;
+double cte_cost_weight = 5.0;
+double epsi_cost_weight = 5.0;
 double delta_cost_weight = 1.0;
 double accel_cost_weight = 1.0;
 double delta_change_cost_weight = 1.0;
@@ -48,7 +49,11 @@ class FG_eval {
 public:
     // Fitted polynomial coefficients
     Eigen::VectorXd coeffs;
-    FG_eval(Eigen::VectorXd coeffs) { this->coeffs = coeffs; }
+    double rCurve;
+    FG_eval(Eigen::VectorXd coeffs, double rCurve) {
+        this->coeffs = coeffs;
+        this->rCurve = rCurve;
+    }
 
     typedef CPPAD_TESTVECTOR(AD<double>) ADvector;
     void operator()(ADvector& fg, const ADvector& vars) {
@@ -57,6 +62,18 @@ public:
         // NOTE: You'll probably go back and forth between this function and
         // the Solver function below.
 
+        //if car is going round a sharp bend (ie radius of curvature is small, reduce the target speed)
+        if(rCurve < 1) {
+            ref_v = 30;
+        } else if (rCurve < 10){
+            ref_v = 40;
+        }else if (rCurve < 80){
+            ref_v = 50;
+        } else if (rCurve < 200){
+            ref_v = 70;
+        }else {
+            ref_v = 90;
+        }
         //init cost
         fg[0] = 0.0;
 
@@ -72,12 +89,11 @@ public:
             fg[0] += delta_cost_weight * CppAD::pow(vars[delta_start+ t], 2);
             fg[0] += accel_cost_weight * CppAD::pow(vars[a_start + t], 2);
         }
-        //minize changes in acceleration
+        //minize 'jerkiness'
         for  (int t = 0; t< N -2; t++) {
             fg[0] += delta_change_cost_weight * CppAD::pow(vars[v_start] *(vars[delta_start + t + 1] - vars[delta_start + t])/dt, 2);
             fg[0] += accel_change_cost_weight * CppAD::pow((vars[a_start + t + 1] - vars[a_start + t ])/dt, 2);
         }
-//        cout << "fg0== cost"<< fg[0]<< endl;
 
         //vehicle model:
         fg[1 + x_start] = vars[x_start];
@@ -108,7 +124,6 @@ public:
             AD<double> delta0 = vars[delta_start + t];
             AD<double> a0 = vars[a_start + t];
 
-            //todo check for polyfit to degree 2 instead
             AD<double> f0 = coeffs[0] + coeffs[1] * x1  + coeffs[2] * x1 * x1 + coeffs[3] * CppAD::pow(x1,3);
 //            AD<double> f0 = coeffs[0] + coeffs[1] * x0  + coeffs[2] * x0 * x0 + coeffs[3] * x0 * x0 * x0;
             AD<double> psi_desired = CppAD::atan(coeffs[1] + 2 * coeffs[2] * x0 + 3 * coeffs[3] * x0 * x0);
@@ -143,6 +158,7 @@ vector<double> MPC::Solve(Eigen::VectorXd state, Eigen::VectorXd coeffs) {
     double v = state[3];
     double cte = state[4];
     double epsi = state[5];
+    double rCurve = state[6];
 
 //    cout<< "states"<<endl;
 //    cout<< "x:" << x << endl;
@@ -220,7 +236,7 @@ vector<double> MPC::Solve(Eigen::VectorXd state, Eigen::VectorXd coeffs) {
 
 
     // object that computes objective and constraints
-    FG_eval fg_eval(coeffs);
+    FG_eval fg_eval(coeffs, rCurve);
 
     //
     // NOTE: You don't have to worry about these options
