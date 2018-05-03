@@ -31,14 +31,15 @@ constant for handling the fact that the car's center of mass and the tyres are n
 The code for handling the car simulation is mostly in main.cpp and MPC.cpp, with a few utility functions in utils.h.
 
 The main steps are:
-0. messages are received from the simulator about the upcoming waypoints, current position, speed, throttle and steering angle of the car.
-1. convert the waypoints from world space to car space (to simplify the calculations)
-2. convert the speed of the car  from miles per hour (from simulator) to meters per second (to match the metric units of the waypoints)
-3. fit a polynomial to the waypoints -- I used a polynomial of degree 3 as it fits the waypoints smoothly 
-4. calculate the cross track error, heading error and the radius of curvature of the predicted path at the position of the car,
+
+1. messages are received from the simulator about the upcoming waypoints, current position, speed, throttle and steering angle of the car.
+2. convert the waypoints from world space to car space (to simplify the calculations)
+3. convert the speed of the car  from miles per hour (from simulator) to meters per second (to match the metric units of the waypoints)
+4. fit a polynomial to the waypoints -- I used a polynomial of degree 3 as it fits the waypoints smoothly 
+5. calculate the cross track error, heading error and the radius of curvature of the predicted path at the position of the car,
 and update the state of the car
-5. use the optimisation solver to solve for the best steering angle and throttle to control the car
-6. send these messages back to the simulator
+6. use the optimisation solver to solve for the best steering angle and throttle to control the car
+7. send these messages back to the simulator
 
 #### Optimisation costs
 Different weights are applied to the various errors as below. In my code, the values for all
@@ -111,9 +112,6 @@ the right value for N and dt is important to getting the car running as too many
 the controller might be too slow in prediction (and this may also cause convergence issues in the error optimsation), while
 too little steps might mean that the controller don't have a good estimation of the next states. In my code, I chose N = 25 and
 dt = 0.05, as this combination gives the best results after a trial and error process. 
-
-
-----
 
 
 ----
