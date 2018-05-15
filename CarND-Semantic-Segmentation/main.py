@@ -42,6 +42,11 @@ def load_vgg(sess, vgg_path):
     t4 = tf.get_default_graph().get_tensor_by_name(vgg_layer4_out_tensor_name)
     t5 = tf.get_default_graph().get_tensor_by_name(vgg_layer7_out_tensor_name)
 
+    tf.summary.image('image', t1)
+    tf.summary.histogram('vgg3', t3)
+    tf.summary.histogram('vgg4', t4)
+    tf.summary.histogram('vgg7', t5)
+
     return t1, t2,t3,t4,t5
 
 tests.test_load_vgg(load_vgg, tf)
@@ -93,6 +98,7 @@ def optimize(nn_last_layer, correct_label, learning_rate, num_classes, reg_const
     loss = cross_entropy_loss + regulatisation_constant * sum(regularisation_losses)
     optimizer = tf.train.AdamOptimizer(learning_rate).minimize(loss)
 
+    tf.summary.scalar("loss", loss)
     return logits, optimizer, cross_entropy_loss
 # tests.test_optimize(optimize)
 
