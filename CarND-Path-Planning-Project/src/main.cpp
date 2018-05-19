@@ -20,6 +20,7 @@ using json = nlohmann::json;
 const int NUM_PRED_WAYPOINTS = 50;
 const double MAX_SPEED = 49;
 int lane = 1;
+double ref_speed = 0;
 
 // Checks if the SocketIO event has JSON data.
 // If there is data the JSON object in string format will be returned,
@@ -112,7 +113,10 @@ int main() {
 
                     json msgJson;
 
-                    double prevpath_size = previous_path_x.size();
+                    int prevpath_size = previous_path_x.size();
+                    double horizon_x = 30.0;
+                    bool too_close = false;
+
 
                     vector<double> next_x_vals;
                     vector<double> next_y_vals;
@@ -122,12 +126,38 @@ int main() {
                     double ref_x = car_x;
                     double ref_y = car_y;
                     double ref_yaw = deg2rad(car_yaw);
+                    double ref_s = car_s;
 
                     double ref_x_prev = car_x - cos(ref_yaw);
                     double ref_y_prev = car_y - sin(ref_yaw);
 
+
                     if(ref_yaw > deg2rad(25)) {
                         ref_yaw = deg2rad(25);
+                    }
+
+                    for (int i = 0; i < sensor_fusion.size(); i++) {
+                        float d = sensor_fusion.at(i).at(6);
+                        // if other car is in our lane:
+                        if (d > (2 + 4 * lane -2) && d < (2 + 4 * lane + 2)) {
+                            double vx = sensor_fusion.at(i).at(3);
+                            double vy = sensor_fusion.at(i).at(4);
+                            double other_speed = sqrt(vx * vx + vy * vy);
+                            double other_car_s = sensor_fusion.at(i).at(5);
+
+                            other_car_s += ((double)prevpath_size * 0.02 * other_speed);
+                            if((other_car_s > ref_s) && ((other_car_s - ref_s) < horizon_x)) {
+//                                ref_speed = other_speed;
+                                too_close = true;
+                                cout << "too close!!"<< endl;
+                            }
+                        }
+                    }
+
+                    if (too_close == true || ref_speed > MAX_SPEED) {
+                        ref_speed -= 0.2;
+                    } else if(ref_speed < MAX_SPEED - 0.2) {
+                        ref_speed += 0.2;
                     }
 
                     if (prevpath_size >=  2) {
@@ -138,6 +168,7 @@ int main() {
                        ref_y_prev = previous_path_y[prevpath_size -2];
 
                        ref_yaw = atan2((ref_y - ref_y_prev), (ref_x - ref_x_prev));
+                       ref_s = end_path_s;
 
                    }
                     pts_x.push_back(ref_x_prev);
@@ -147,7 +178,7 @@ int main() {
                     pts_y.push_back(ref_y);
 
                     for (int i = 1; i < 4; i++) {
-                        vector<double> next_wp= getXY((car_s + (i * 30)), (2 + 4 * lane), map_waypoints_s, map_waypoints_x, map_waypoints_y);
+                        vector<double> next_wp= getXY((ref_s + (i * 30)), (2 + 4 * lane), map_waypoints_s, map_waypoints_x, map_waypoints_y);
                         if (next_wp[0] > pts_x.at(1)){
                             pts_x.push_back(next_wp[0]);
                             pts_y.push_back(next_wp[1]);
@@ -173,23 +204,13 @@ int main() {
 
                     tk::spline s;
                     s.set_points(fitpts_x, fitpts_y);
-//                    s.set_points(pts_x, pts_y);
+                    for (int i = 0; i < prevpath_size; i++) {
+                        next_x_vals.push_back(previous_path_x[i]);
+                        next_y_vals.push_back(previous_path_y[i]);
+                    }
 
-//                    if (prevpath_size >= 2) {
-                        for (int i = 0; i < prevpath_size; i++) {
-                            next_x_vals.push_back(previous_path_x[i]);
-                            next_y_vals.push_back(previous_path_y[i]);
-                        }
-//                    }
-//                    else {
-//
-//                        next_x_vals.push_back(ref_x_prev);
-//                        next_x_vals.push_back(ref_x);
-//                        next_y_vals.push_back(ref_y_prev);
-//                        next_y_vals.push_back(ref_y);
-//                    }
 
-                    double horizon_x = 30.0;
+
                     double horizon_y = s(horizon_x);
 
                     double target_d =  sqrt(horizon_x *  horizon_x + horizon_y * horizon_y);
@@ -197,7 +218,7 @@ int main() {
                     double x_sum_prev = 0; // the distance in x covered by previous points
 
                     for (int i = 0; i< 50 - prevpath_size; i++) {
-                        double N = target_d / ( MAX_SPEED * 0.02 / 2.24);
+                        double N = target_d / ( ref_speed * 0.02 / 2.24);
                         double x_point = x_sum_prev + horizon_x / N;
                         double y_point = s(x_point);
 
@@ -215,9 +236,6 @@ int main() {
                         next_x_vals.push_back(x_point + ref_x);
                         next_y_vals.push_back(y_point + ref_y);
                     }
-
-                    cout << "car_speed:" << car_speed<< endl;
-
 
                     msgJson["next_x"] = next_x_vals;
                     msgJson["next_y"] = next_y_vals;
