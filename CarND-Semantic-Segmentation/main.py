@@ -56,7 +56,6 @@ def load_vgg(sess, vgg_path):
 
     return t1, t2,t3,t4,t5
 
-tests.test_load_vgg(load_vgg, tf)
 
 
 def conv_1x1(input_tensor, num_outputs, kernel_regularizer, activation = None, name="conv_1x1"):
@@ -169,7 +168,7 @@ def optimize(nn_last_layer, correct_label, learning_rate, num_classes, reg_const
         optimizer = tf.train.AdamOptimizer(learning_rate).minimize(loss, global_step=global_step)
 
 
-    return logits, optimizer, cross_entropy_loss, global_step
+    return logits, optimizer, loss, global_step
 # tests.test_optimize(optimize)
 
 
@@ -190,16 +189,17 @@ def train_nn(sess, epochs, batch_size, get_batches_fn, train_op, cross_entropy_l
     :param kprob_actual: value for keep probability
     :param lr_actual: value for learning rate
     """
-
+    # saver = tf.train.Saver()
     tfboard_summary = tf.summary.merge_all()
     writer = tf.summary.FileWriter('tensorboard_graphs/fcn')
     writer.add_graph(sess.graph)
 
-    sess.run(tf.global_variables_initializer())
+
     ckpt = tf.train.get_checkpoint_state(os.path.dirname('checkpoints/checkpoint'))
     if ckpt and ckpt.model_checkpoint_path:
         saver.restore(sess, ckpt.model_checkpoint_path)
     for epoch in range(epochs):
+        step = 0
         for imgs, correct_labels in get_batches_fn(batch_size):
             _, total_loss, summary = sess.run([train_op, cross_entropy_loss, tfboard_summary], feed_dict={
 
@@ -208,8 +208,10 @@ def train_nn(sess, epochs, batch_size, get_batches_fn, train_op, cross_entropy_l
                 keep_prob: kprob_actual,
                 input_image: imgs})
             writer.add_summary(summary, global_step=global_step)
-        saver.save(sess, 'checkpoints/fcn', global_step=global_step)
-    return saver
+            print("loss: ", total_loss, " step: ", step, " epoch: ", epoch)
+            step += 1
+        # saver.save(sess, 'checkpoints/fcn', global_step=global_step)
+    # return saver
 
 
 # tests.test_train_nn(train_nn)
@@ -232,14 +234,10 @@ def run():
     data_dir = './data'
     runs_dir = './runs'
 
-    learning_rate = tf.placeholder(tf.float32)
-    correct_label = tf.placeholder(tf.float32, shape=(None, None, None, num_classes))
-    input_image = tf.placeholder(tf.float32, shape=(None, None, None, 3))
-    reg_const = 0.1
-    epochs = 5
-    batch_size = 16
-    kprob_actual = 0.3
-    lr_actual = 0.01
+    safe_mkdir('checkpoints')
+    safe_mkdir('tensorboard_graphs')
+
+
 
     # Download pretrained vgg model
     helper.maybe_download_pretrained_vgg(data_dir)
@@ -248,33 +246,50 @@ def run():
     # You'll need a GPU with at least 10 teraFLOPS to train on.
     #  https://www.cityscapes-dataset.com/
 
-    saver = tf.train.Saver()
 
-    with tf.Session() as sess:
-        # Path to vgg model
-        vgg_path = os.path.join(data_dir, 'vgg')
-        # Create function to get batches
-        get_batches_fn = helper.gen_batch_function(os.path.join(data_dir, 'data_road/training'), image_shape)
 
-        # OPTIONAL: Augment Images for better results
-        #  https://datascience.stackexchange.com/questions/5224/how-to-prepare-augment-images-for-neural-network
+    graph = tf.Graph()
+    with graph.as_default():
+        saver = tf.train.Saver()  # Gets all variables in `graph`.
 
-        # if a checkpoint exists, restore from the latest checkpoint
+        with tf.Session(graph=graph) as sess:
+        # with tf.Session() as sess:
+            learning_rate = tf.placeholder(tf.float32)
+            correct_label = tf.placeholder(tf.float32, shape=(None, None, None, num_classes))
+            input_image = tf.placeholder(tf.float32, shape=(None, None, None, 3))
+            reg_const = 0.1
+            epochs = 5
+            batch_size = 16
+            kprob_actual = 0.3
+            lr_actual = 0.01
 
-        image_input, keep_prob, layer3_out, layer4_out, layer7_out = load_vgg(sess, vgg_path)
-        nn_last_layer = layers(layer3_out, layer4_out, layer7_out, num_classes)
+            # Path to vgg model
+            vgg_path = os.path.join(data_dir, 'vgg')
+            # Create function to get batches
+            get_batches_fn = helper.gen_batch_function(os.path.join(data_dir, 'data_road/training'), image_shape)
 
-        logits, optimizer, loss, global_step = optimize(nn_last_layer, correct_label, learning_rate, reg_const)
-        saver = train_nn(sess, epochs, batch_size, get_batches_fn, optimizer, loss, input_image,
-                 correct_label, keep_prob, learning_rate, kprob_actual, lr_actual, global_step, saver)
+            # OPTIONAL: Augment Images for better results
+            #  https://datascience.stackexchange.com/questions/5224/how-to-prepare-augment-images-for-neural-network
 
-        # TODO: Save inference data using helper.save_inference_samples
-        helper.save_inference_samples(runs_dir, data_dir, sess, image_shape, logits, keep_prob, input_image)
+            # if a checkpoint exists, restore from the latest checkpoint
+
+            image_input, keep_prob, layer3_out, layer4_out, layer7_out = load_vgg(sess, vgg_path)
+            nn_last_layer = layers(layer3_out, layer4_out, layer7_out, num_classes)
+
+            logits, optimizer, loss, global_step = optimize(nn_last_layer, correct_label, learning_rate, reg_const)
+            sess.run(tf.global_variables_initializer())
+            saver = tf.train.Saver()
+
+            train_nn(sess, epochs, batch_size, get_batches_fn, optimizer, loss, input_image,
+                     correct_label, keep_prob, learning_rate, kprob_actual, lr_actual, global_step, saver)
+
+            # TODO: Save inference data using helper.save_inference_samples
+            helper.save_inference_samples(runs_dir, data_dir, sess, image_shape, logits, keep_prob, input_image)
 
         # OPTIONAL: Apply the trained model to a video
 
 
 if __name__ == '__main__':
-    test()
+    # test()
     run()
 
