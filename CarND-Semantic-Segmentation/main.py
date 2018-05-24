@@ -1,4 +1,4 @@
-import os.path
+import os
 import tensorflow as tf
 import helper
 import warnings
@@ -15,6 +15,13 @@ print('TensorFlow Version: {}'.format(tf.__version__))
 #     warnings.warn('No GPU found. Please use a GPU to train your neural network.')
 # else:
 #     print('Default GPU Device: {}'.format(tf.test.gpu_device_name()))
+
+def safe_mkdir(path):
+    """ Create a directory if there isn't one already. """
+    try:
+        os.mkdir(path)
+    except OSError:
+        pass
 
 
 def load_vgg(sess, vgg_path):
@@ -155,11 +162,13 @@ def optimize(nn_last_layer, correct_label, learning_rate, num_classes, reg_const
     regularisation_losses = tf.get_collection(tf.GraphKeys.REGULARIZATION_LOSSES)
     regulatisation_constant = reg_const  # Choose an appropriate one.
     global_step = tf.Variable(0, dtype=tf.int32, trainable=False, name='global_step')
+    with tf.name_scope('total_loss'):
+        loss = cross_entropy_loss + regulatisation_constant * sum(regularisation_losses)
+        tf.summary.scalar("loss", loss)
+    with tf.name_scope('optimizer'):
+        optimizer = tf.train.AdamOptimizer(learning_rate).minimize(loss, global_step=global_step)
 
-    loss = cross_entropy_loss + regulatisation_constant * sum(regularisation_losses)
-    optimizer = tf.train.AdamOptimizer(learning_rate).minimize(loss, global_step=global_step)
 
-    tf.summary.scalar("loss", loss)
     return logits, optimizer, cross_entropy_loss, global_step
 # tests.test_optimize(optimize)
 
@@ -182,7 +191,9 @@ def train_nn(sess, epochs, batch_size, get_batches_fn, train_op, cross_entropy_l
     :param lr_actual: value for learning rate
     """
 
-
+    tfboard_summary = tf.summary.merge_all()
+    writer = tf.summary.FileWriter('tensorboard_graphs/fcn')
+    writer.add_graph(sess.graph)
 
     sess.run(tf.global_variables_initializer())
     ckpt = tf.train.get_checkpoint_state(os.path.dirname('checkpoints/checkpoint'))
@@ -190,12 +201,13 @@ def train_nn(sess, epochs, batch_size, get_batches_fn, train_op, cross_entropy_l
         saver.restore(sess, ckpt.model_checkpoint_path)
     for epoch in range(epochs):
         for imgs, correct_labels in get_batches_fn(batch_size):
-            sess.run([train_op, cross_entropy_loss], feed_dict={
+            _, total_loss, summary = sess.run([train_op, cross_entropy_loss, tfboard_summary], feed_dict={
 
                 learning_rate: lr_actual,
                 correct_label: correct_labels,
                 keep_prob: kprob_actual,
                 input_image: imgs})
+            writer.add_summary(summary, global_step=global_step)
         saver.save(sess, 'checkpoints/fcn', global_step=global_step)
     return saver
 
@@ -211,7 +223,7 @@ def test():
     tests.test_layers(layers)
     tests.test_optimize(optimize)
     tests.test_train_nn(train_nn)
-    # tests.test_for_kitti_dataset(data_dir)
+    tests.test_for_kitti_dataset(data_dir)
 
 
 def run():
@@ -219,7 +231,7 @@ def run():
     image_shape = (160, 576)
     data_dir = './data'
     runs_dir = './runs'
-    tests.test_for_kitti_dataset(data_dir)
+
     learning_rate = tf.placeholder(tf.float32)
     correct_label = tf.placeholder(tf.float32, shape=(None, None, None, num_classes))
     input_image = tf.placeholder(tf.float32, shape=(None, None, None, 3))
@@ -236,7 +248,6 @@ def run():
     # You'll need a GPU with at least 10 teraFLOPS to train on.
     #  https://www.cityscapes-dataset.com/
 
-    writer = tf.summary.FileWriter('graphs/fcn')
     saver = tf.train.Saver()
 
     with tf.Session() as sess:
@@ -248,16 +259,10 @@ def run():
         # OPTIONAL: Augment Images for better results
         #  https://datascience.stackexchange.com/questions/5224/how-to-prepare-augment-images-for-neural-network
 
-        sess.run(tf.global_variables_initializer())
-
         # if a checkpoint exists, restore from the latest checkpoint
 
-
-        writer = tf.summary.FileWriter('graphs/word2vec' + str(self.lr), sess.graph)
-
-
         image_input, keep_prob, layer3_out, layer4_out, layer7_out = load_vgg(sess, vgg_path)
-        nn_last_layer= layers(layer3_out, layer4_out, layer7_out, num_classes)
+        nn_last_layer = layers(layer3_out, layer4_out, layer7_out, num_classes)
 
         logits, optimizer, loss, global_step = optimize(nn_last_layer, correct_label, learning_rate, reg_const)
         saver = train_nn(sess, epochs, batch_size, get_batches_fn, optimizer, loss, input_image,
