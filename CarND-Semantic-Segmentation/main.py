@@ -1,6 +1,7 @@
 import os
 import tensorflow as tf
 import helper
+from tqdm import tqdm
 import warnings
 from distutils.version import LooseVersion
 import project_tests as tests
@@ -43,19 +44,28 @@ def load_vgg(sess, vgg_path):
         [vgg_tag],
         vgg_path
     )
-    t1 = tf.get_default_graph().get_tensor_by_name(vgg_input_tensor_name)
-    t2 = tf.get_default_graph().get_tensor_by_name(vgg_keep_prob_tensor_name)
-    t3 = tf.get_default_graph().get_tensor_by_name(vgg_layer3_out_tensor_name)
-    t4 = tf.get_default_graph().get_tensor_by_name(vgg_layer4_out_tensor_name)
-    t5 = tf.get_default_graph().get_tensor_by_name(vgg_layer7_out_tensor_name)
 
-    tf.summary.image('image', t1)
-    tf.summary.histogram('vgg3', t3)
-    tf.summary.histogram('vgg4', t4)
-    tf.summary.histogram('vgg7', t5)
+    with tf.name_scope("vgg_base"):
+        t1 = sess.graph.get_tensor_by_name(vgg_input_tensor_name)
+        t2 = sess.graph.get_tensor_by_name(vgg_keep_prob_tensor_name)
+        t3 = sess.graph.get_tensor_by_name(vgg_layer3_out_tensor_name)
+        t4 = sess.graph.get_tensor_by_name(vgg_layer4_out_tensor_name)
+        t5 = sess.graph.get_tensor_by_name(vgg_layer7_out_tensor_name)
 
-    return t1, t2,t3,t4,t5
+        tf.summary.image('image', t1)
+        tf.summary.histogram('vgg3', t2)
+        tf.summary.histogram('vgg3', t3)
+        tf.summary.histogram('vgg4', t4)
+        tf.summary.histogram('vgg7', t5)
 
+    print('vgg loaded',
+          t1.get_shape(),
+          t2.get_shape(),
+          t3.get_shape(),
+          t4.get_shape(),
+          t5.get_shape())
+
+    return t1, t2, t3, t4, t5
 
 
 def conv_1x1(input_tensor, num_outputs, kernel_regularizer, activation = None, name="conv_1x1"):
@@ -82,6 +92,8 @@ def conv_1x1(input_tensor, num_outputs, kernel_regularizer, activation = None, n
 
         tf.summary.histogram(name, conv_1x1_layer)
 
+        print(name, ' conv1x1')
+
         return conv_1x1_layer
 
 
@@ -92,7 +104,7 @@ def upsample_layer(input_tensor, num_outputs, ksize, strides, kernel_regularizer
                         name=name)
 
         tf.summary.histogram(name, upsample)
-
+        print('upsampe ', name )
         return upsample
 
 
@@ -100,6 +112,7 @@ def skip_layer(input_tensor1, input_tensor2, name="skip"):
     with tf.name_scope(name):
         skip = tf.add(input_tensor1, input_tensor2)
         tf.summary.histogram(name, skip)
+        print('skip layer ', name)
         return skip
 
 
@@ -126,27 +139,19 @@ def layers(vgg_layer3_out, vgg_layer4_out, vgg_layer7_out, num_classes):
     upsample_layer4 = upsample_layer(skip1, num_classes, 4, 2,
                                      kernel_regularizer=tf.contrib.layers.l2_regularizer(1e-3), name="upsample_layer4")
     skip2 = tf.add(upsample_layer4, layer3_conv1x1, name="skip2")
-
-    # layer7_conv1x1 = tf.layers.conv2d(vgg_layer7_out, num_classes, 1, 1, padding='same',
-    #                             kernel_regularizer=tf.contrib.layers.l2_regularizer(1e-3), name='layer7_conv1x1')
-    # upsample_layer7 = tf.layers.conv2d_transpose(layer7_conv1x1, num_classes, 4,2, padding="same",
-    #                                    kernel_regularizer=tf.contrib.layers.l2_regularizer(1e-3), name='upsample_layer7')
-    # layer4_conv1x1 = tf.layers.conv2d(vgg_layer4_out, num_classes, 1, 1, padding='same',
-    #                                   kernel_regularizer=tf.contrib.layers.l2_regularizer(1e-3), name='layer4_conv1x1')
-    # layer3_conv1x1 = tf.layers.conv2d(vgg_layer3_out, num_classes, 1, 1, padding='same',
-    #                                   kernel_regularizer=tf.contrib.layers.l2_regularizer(1e-3), name='layer3_conv1x1')
-    # skip1 = tf.add(upsample_layer7, layer4_conv1x1)
-    # upsample_layer4 = tf.layers.conv2d_transpose(skip1, num_classes, 4, strides=(2, 2), padding="same",
-    #                                    kernel_regularizer=tf.contrib.layers.l2_regularizer(1e-3))
-    # skip2 = tf.add(upsample_layer4, layer3_conv1x1)
-
-    return tf.layers.conv2d_transpose(skip2, num_classes, 16, strides=(8, 8), padding="same",
+    output_layer = tf.layers.conv2d_transpose(skip2, num_classes, 16, strides=(8, 8), padding="same",
                                        kernel_regularizer=tf.contrib.layers.l2_regularizer(1e-3))
+    print('building layers', output_layer.get_shape().as_list())
+
+    return output_layer
 
 # tests.test_layers(layers)
 
 
-def optimize(nn_last_layer, correct_label, learning_rate, num_classes, reg_const):
+
+
+
+def optimize(nn_last_layer, correct_label, learning_rate, num_classes, reg_const=1e-3):
     """
     Build the TensorFLow loss and optimizer operations.
     :param nn_last_layer: TF Tensor of the last layer in the neural network
@@ -155,17 +160,20 @@ def optimize(nn_last_layer, correct_label, learning_rate, num_classes, reg_const
     :param num_classes: Number of classes to classify
     :return: Tuple of (logits, train_op, cross_entropy_loss)
     """
-    logits = tf.reshape(nn_last_layer, (-1, num_classes))
-    labels = tf.reshape(correct_label, [-1, num_classes])
+    logits = tf.reshape(nn_last_layer, [-1, int(num_classes)])
+    labels = tf.reshape(correct_label, [-1, int(num_classes)])
     cross_entropy_loss = tf.reduce_mean(tf.nn.softmax_cross_entropy_with_logits(logits=logits, labels=labels))
     regularisation_losses = tf.get_collection(tf.GraphKeys.REGULARIZATION_LOSSES)
     regulatisation_constant = reg_const  # Choose an appropriate one.
     global_step = tf.Variable(0, dtype=tf.int32, trainable=False, name='global_step')
+
     with tf.name_scope('total_loss'):
         loss = cross_entropy_loss + regulatisation_constant * sum(regularisation_losses)
         tf.summary.scalar("loss", loss)
     with tf.name_scope('optimizer'):
         optimizer = tf.train.AdamOptimizer(learning_rate).minimize(loss, global_step=global_step)
+
+    print('optimising')
 
 
     return logits, optimizer, loss, global_step
@@ -198,7 +206,7 @@ def train_nn(sess, epochs, batch_size, get_batches_fn, train_op, cross_entropy_l
     ckpt = tf.train.get_checkpoint_state(os.path.dirname('checkpoints/checkpoint'))
     if ckpt and ckpt.model_checkpoint_path:
         saver.restore(sess, ckpt.model_checkpoint_path)
-    for epoch in range(epochs):
+    for epoch in tqdm(range(epochs)):
         step = 0
         for imgs, correct_labels in get_batches_fn(batch_size):
             _, total_loss, summary = sess.run([train_op, cross_entropy_loss, tfboard_summary], feed_dict={
@@ -210,7 +218,7 @@ def train_nn(sess, epochs, batch_size, get_batches_fn, train_op, cross_entropy_l
             writer.add_summary(summary, global_step=global_step)
             print("loss: ", total_loss, " step: ", step, " epoch: ", epoch)
             step += 1
-        # saver.save(sess, 'checkpoints/fcn', global_step=global_step)
+        saver.save(sess, 'checkpoints/fcn', global_step=global_step)
     # return saver
 
 
@@ -250,7 +258,7 @@ def run():
 
     graph = tf.Graph()
     with graph.as_default():
-        saver = tf.train.Saver()  # Gets all variables in `graph`.
+
 
         with tf.Session(graph=graph) as sess:
         # with tf.Session() as sess:
@@ -279,10 +287,10 @@ def run():
             logits, optimizer, loss, global_step = optimize(nn_last_layer, correct_label, learning_rate, reg_const)
             sess.run(tf.global_variables_initializer())
             saver = tf.train.Saver()
-
+            print('1')
             train_nn(sess, epochs, batch_size, get_batches_fn, optimizer, loss, input_image,
                      correct_label, keep_prob, learning_rate, kprob_actual, lr_actual, global_step, saver)
-
+            print('2')
             # TODO: Save inference data using helper.save_inference_samples
             helper.save_inference_samples(runs_dir, data_dir, sess, image_shape, logits, keep_prob, input_image)
 
