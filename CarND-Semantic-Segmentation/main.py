@@ -162,7 +162,7 @@ def optimize(nn_last_layer, correct_label, learning_rate, num_classes, reg_const
     """
     logits = tf.reshape(nn_last_layer, [-1, int(num_classes)])
     labels = tf.reshape(correct_label, [-1, int(num_classes)])
-    cross_entropy_loss = tf.reduce_mean(tf.nn.softmax_cross_entropy_with_logits(logits=logits, labels=labels))
+    cross_entropy_loss = tf.reduce_mean(tf.nn.softmax_cross_entropy_with_logits_v2(logits=logits, labels=labels))
     regularisation_losses = tf.get_collection(tf.GraphKeys.REGULARIZATION_LOSSES)
     regulatisation_constant = reg_const  # Choose an appropriate one.
     global_step = tf.Variable(0, dtype=tf.int32, trainable=False, name='global_step')
