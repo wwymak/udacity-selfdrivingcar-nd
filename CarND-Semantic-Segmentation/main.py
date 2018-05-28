@@ -4,12 +4,12 @@ import helper
 from tqdm import tqdm
 import warnings
 from distutils.version import LooseVersion
-import project_tests as tests
+# import project_tests as tests
 
 
 # Check TensorFlow Version
-assert LooseVersion(tf.__version__) >= LooseVersion('1.0'), 'Please use TensorFlow version 1.0 or newer.  You are using {}'.format(tf.__version__)
-print('TensorFlow Version: {}'.format(tf.__version__))
+# assert LooseVersion(tf.__version__) >= LooseVersion('1.0'), 'Please use TensorFlow version 1.0 or newer.  You are using {}'.format(tf.__version__)
+# print('TensorFlow Version: {}'.format(tf.__version__))
 
 # Check for a GPU
 # if not tf.test.gpu_device_name():
@@ -53,7 +53,6 @@ def load_vgg(sess, vgg_path):
         t5 = sess.graph.get_tensor_by_name(vgg_layer7_out_tensor_name)
 
         tf.summary.image('image', t1)
-        tf.summary.histogram('vgg3', t2)
         tf.summary.histogram('vgg3', t3)
         tf.summary.histogram('vgg4', t4)
         tf.summary.histogram('vgg7', t5)
@@ -68,7 +67,7 @@ def load_vgg(sess, vgg_path):
     return t1, t2, t3, t4, t5
 
 
-def conv_1x1(input_tensor, num_outputs, kernel_regularizer, activation = None, name="conv_1x1"):
+def conv_1x1(input_tensor, num_outputs, kernel_regularizer, activation=None, name="conv_1x1"):
     """
     Perform a 1x1 convolution
     :x: 4-Rank Tensor
@@ -84,7 +83,6 @@ def conv_1x1(input_tensor, num_outputs, kernel_regularizer, activation = None, n
             kernel_size=kernel_size,
             strides=stride,
             padding='SAME',
-            dilation_rate=(1, 1),
             activation=activation,
             kernel_initializer=kernel_initializer,
             kernel_regularizer=kernel_regularizer,
@@ -138,7 +136,7 @@ def layers(vgg_layer3_out, vgg_layer4_out, vgg_layer7_out, num_classes):
 
     upsample_layer4 = upsample_layer(skip1, num_classes, 4, 2,
                                      kernel_regularizer=tf.contrib.layers.l2_regularizer(1e-3), name="upsample_layer4")
-    skip2 = tf.add(upsample_layer4, layer3_conv1x1, name="skip2")
+    skip2 = skip_layer(upsample_layer4, layer3_conv1x1, name="skip2")
     output_layer = tf.layers.conv2d_transpose(skip2, num_classes, 16, strides=(8, 8), padding="same",
                                        kernel_regularizer=tf.contrib.layers.l2_regularizer(1e-3))
     print('building layers', output_layer.get_shape().as_list())
@@ -160,9 +158,14 @@ def optimize(nn_last_layer, correct_label, learning_rate, num_classes, reg_const
     :param num_classes: Number of classes to classify
     :return: Tuple of (logits, train_op, cross_entropy_loss)
     """
-    logits = tf.reshape(nn_last_layer, [-1, int(num_classes)])
-    labels = tf.reshape(correct_label, [-1, int(num_classes)])
-    cross_entropy_loss = tf.reduce_mean(tf.nn.softmax_cross_entropy_with_logits_v2(logits=logits, labels=labels))
+
+    logits = tf.reshape(nn_last_layer, (-1, num_classes), name='logits')
+    labels = tf.reshape(correct_label, (-1, num_classes), name='ground_truth')
+    print(nn_last_layer, correct_label, '1b')
+    # logits = tf.reshape(nn_last_layer, [160*576, int(num_classes)])
+    # labels = tf.reshape(correct_label, [160*576, int(num_classes)])
+
+    cross_entropy_loss = tf.reduce_mean(tf.nn.softmax_cross_entropy_with_logits_v2(logits=logits, labels=labels), name='xent_loss')
     regularisation_losses = tf.get_collection(tf.GraphKeys.REGULARIZATION_LOSSES)
     regulatisation_constant = reg_const  # Choose an appropriate one.
     global_step = tf.Variable(0, dtype=tf.int32, trainable=False, name='global_step')
@@ -174,8 +177,6 @@ def optimize(nn_last_layer, correct_label, learning_rate, num_classes, reg_const
         optimizer = tf.train.AdamOptimizer(learning_rate).minimize(loss, global_step=global_step)
 
     print('optimising')
-
-
     return logits, optimizer, loss, global_step
 # tests.test_optimize(optimize)
 
@@ -208,32 +209,33 @@ def train_nn(sess, epochs, batch_size, get_batches_fn, train_op, cross_entropy_l
         saver.restore(sess, ckpt.model_checkpoint_path)
     for epoch in tqdm(range(epochs)):
         step = 0
-        for imgs, correct_labels in get_batches_fn(batch_size):
+        for imgs, gt_labels in get_batches_fn(batch_size):
+            print(imgs.shape, gt_labels.shape)
             _, total_loss, summary = sess.run([train_op, cross_entropy_loss, tfboard_summary], feed_dict={
 
-                learning_rate: lr_actual,
-                correct_label: correct_labels,
-                keep_prob: kprob_actual,
+                learning_rate: 0.01,
+                correct_label: gt_labels,
+                keep_prob: 0.5,
                 input_image: imgs})
-            writer.add_summary(summary, global_step=global_step)
+            writer.add_summary(summary, global_step=epoch)
             print("loss: ", total_loss, " step: ", step, " epoch: ", epoch)
             step += 1
-        saver.save(sess, 'checkpoints/fcn', global_step=global_step)
+    saver.save(sess, 'checkpoints/fcn', global_step=epoch)
     # return saver
 
 
 # tests.test_train_nn(train_nn)
 
-def test():
-    num_classes = 2
-    image_shape = (160, 576)
-    data_dir = './data'
-    runs_dir = './runs'
-    tests.test_load_vgg(load_vgg, tf)
-    tests.test_layers(layers)
-    tests.test_optimize(optimize)
-    tests.test_train_nn(train_nn)
-    tests.test_for_kitti_dataset(data_dir)
+# def test():
+#     num_classes = 2
+#     image_shape = (160, 576)
+#     data_dir = './data'
+#     runs_dir = './runs'
+#     tests.test_load_vgg(load_vgg, tf)
+#     tests.test_layers(layers)
+#     tests.test_optimize(optimize)
+#     tests.test_train_nn(train_nn)
+#     tests.test_for_kitti_dataset(data_dir)
 
 
 def run():
@@ -263,12 +265,12 @@ def run():
         with tf.Session(graph=graph) as sess:
         # with tf.Session() as sess:
             learning_rate = tf.placeholder(tf.float32)
-            correct_label = tf.placeholder(tf.float32, shape=(None, None, None, num_classes))
-            input_image = tf.placeholder(tf.float32, shape=(None, None, None, 3))
+            correct_label = tf.placeholder(tf.float32, shape=(None, image_shape[0], image_shape[1], num_classes))
+            # input_image = tf.placeholder(tf.float32, shape=(None, image_shape[0], image_shape[1], 3))
             reg_const = 0.1
             epochs = 5
-            batch_size = 16
-            kprob_actual = 0.3
+            batch_size = 4
+            kprob_actual = 0.5
             lr_actual = 0.01
 
             # Path to vgg model
@@ -285,14 +287,14 @@ def run():
             nn_last_layer = layers(layer3_out, layer4_out, layer7_out, num_classes)
 
             logits, optimizer, loss, global_step = optimize(nn_last_layer, correct_label, learning_rate, reg_const)
-            sess.run(tf.global_variables_initializer())
+
             saver = tf.train.Saver()
             print('1')
-            train_nn(sess, epochs, batch_size, get_batches_fn, optimizer, loss, input_image,
+            train_nn(sess, epochs, batch_size, get_batches_fn, optimizer, loss, image_input,
                      correct_label, keep_prob, learning_rate, kprob_actual, lr_actual, global_step, saver)
             print('2')
             # TODO: Save inference data using helper.save_inference_samples
-            helper.save_inference_samples(runs_dir, data_dir, sess, image_shape, logits, keep_prob, input_image)
+            helper.save_inference_samples(runs_dir, data_dir, sess, image_shape, logits, keep_prob, image_input)
 
         # OPTIONAL: Apply the trained model to a video
 
@@ -300,4 +302,5 @@ def run():
 if __name__ == '__main__':
     # test()
     run()
+
 
