@@ -159,8 +159,8 @@ def optimize(nn_last_layer, correct_label, learning_rate, num_classes, reg_const
     :return: Tuple of (logits, train_op, cross_entropy_loss)
     """
 
-    logits = tf.reshape(nn_last_layer, (-1, num_classes), name='logits')
-    labels = tf.reshape(correct_label, (-1, num_classes), name='ground_truth')
+    logits = tf.reshape(nn_last_layer, (-1, int(num_classes)), name='logits')
+    labels = tf.reshape(correct_label, (-1, int(num_classes)), name='ground_truth')
     print(nn_last_layer, correct_label, '1b')
     # logits = tf.reshape(nn_last_layer, [160*576, int(num_classes)])
     # labels = tf.reshape(correct_label, [160*576, int(num_classes)])
@@ -240,7 +240,8 @@ def train_nn(sess, epochs, batch_size, get_batches_fn, train_op, cross_entropy_l
 
 def run():
     num_classes = 2
-    image_shape = (160, 576)
+    image_shape = (160, 160)
+    # image_shape = (160, 576)
     data_dir = './data'
     runs_dir = './runs'
 

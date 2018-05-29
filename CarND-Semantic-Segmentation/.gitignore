@@ -1,6 +1,7 @@
 tensorboard_graphs
 debug.py
 fcn.py
+
 # Byte-compiled / optimized / DLL files
 __pycache__/
 *.py[cod]
