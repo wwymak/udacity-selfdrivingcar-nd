@@ -20,6 +20,12 @@ class DLProgress(tqdm):
         self.update((block_num - self.last_block) * block_size)
         self.last_block = block_num
 
+def safe_mkdir(path):
+    """ Create a directory if there isn't one already. """
+    try:
+        os.mkdir(path)
+    except OSError:
+        pass
 
 def maybe_download_pretrained_vgg(data_dir):
     """

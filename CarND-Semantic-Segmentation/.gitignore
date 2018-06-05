@@ -1,6 +1,9 @@
 tensorboard_graphs
 debug.py
 fcn.py
+*.h5
+checkpoints/
+checkpoints
 
 # Byte-compiled / optimized / DLL files
 __pycache__/
