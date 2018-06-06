@@ -161,30 +161,31 @@ def train_nn(sess, epochs, batch_size, get_batches_fn, train_op, cross_entropy_l
     sess.run(tf.local_variables_initializer())
 
 
-    saver = tf.train.Saver(allow_empty=True)
-    tfboard_summary = tf.summary.merge_all()
-    writer = tf.summary.FileWriter('tensorboard_graphs/fcn')
-    writer.add_graph(sess.graph)
+    # saver = tf.train.Saver(allow_empty=True)
+    # tfboard_summary = tf.summary.merge_all()
+    # writer = tf.summary.FileWriter('tensorboard_graphs/fcn')
+    # writer.add_graph(sess.graph)
 
-    ckpt = tf.train.get_checkpoint_state(os.path.dirname('checkpoints/checkpoint'))
-    if ckpt and ckpt.model_checkpoint_path:
-        saver.restore(sess, ckpt.model_checkpoint_path)
+    # ckpt = tf.train.get_checkpoint_state(os.path.dirname('checkpoints/checkpoint'))
+    # if ckpt and ckpt.model_checkpoint_path:
+    #     saver.restore(sess, ckpt.model_checkpoint_path)
     for epoch in tqdm(range(epochs)):
         step = 0
         total_loss = 0
         for imgs, gt_labels in get_batches_fn(batch_size):
             print(imgs.shape, gt_labels.shape)
-            _, loss, summary = sess.run([train_op, cross_entropy_loss, tfboard_summary], feed_dict={
+            _, loss = sess.run([train_op, cross_entropy_loss], feed_dict={
+            # _, loss, summary = sess.run([train_op, cross_entropy_loss, tfboard_summary], feed_dict={
                 learning_rate: learning_rate_val,
                 correct_label: gt_labels,
                 keep_prob: keep_prob_val,
                 input_image: imgs})
 
-            writer.add_summary(summary, global_step=epoch)
+            # writer.add_summary(summary, global_step=epoch)
             print("loss: ", loss, " step: ", step, " epoch: ", epoch)
             step += 1
             total_loss += loss
-        saver.save(sess, 'checkpoints/fcn', global_step=epoch)
+        # saver.save(sess, 'checkpoints/fcn', global_step=epoch)
 
 
 tests.test_train_nn(train_nn)
