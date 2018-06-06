@@ -1,6 +1,6 @@
 tensorboard_graphs
 debug.py
-fcn.py
+
 *.h5
 checkpoints/
 checkpoints

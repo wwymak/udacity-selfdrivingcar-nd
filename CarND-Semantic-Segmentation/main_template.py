@@ -161,7 +161,7 @@ def train_nn(sess, epochs, batch_size, get_batches_fn, train_op, cross_entropy_l
     sess.run(tf.local_variables_initializer())
 
 
-    # saver = tf.train.Saver(allow_empty=True)
+    saver = tf.train.Saver(allow_empty=True)
     # tfboard_summary = tf.summary.merge_all()
     # writer = tf.summary.FileWriter('tensorboard_graphs/fcn')
     # writer.add_graph(sess.graph)
@@ -185,7 +185,7 @@ def train_nn(sess, epochs, batch_size, get_batches_fn, train_op, cross_entropy_l
             print("loss: ", loss, " step: ", step, " epoch: ", epoch)
             step += 1
             total_loss += loss
-        # saver.save(sess, 'checkpoints/fcn', global_step=epoch)
+        saver.save(sess, 'checkpoints/fcn', global_step=epoch)
 
 
 tests.test_train_nn(train_nn)
@@ -226,6 +226,7 @@ def run():
         # sess.run(tf.global_variables_initializer())
         # sess.run(tf.local_variables_initializer())
 
+        # Train fcn network
         train_nn(sess, num_epochs, batch_size, get_batches_fn,
                  optimizer, loss, image_input,
                  correct_label, keep_prob, learning_rate)
@@ -233,9 +234,6 @@ def run():
         # OPTIONAL: Augment Images for better results
         #  https://datascience.stackexchange.com/questions/5224/how-to-prepare-augment-images-for-neural-network
 
-        # TODO: Build NN using load_vgg, layers, and optimize function
-
-        # TODO: Train NN using the train_nn function
 
         # TODO: Save inference data using helper.save_inference_samples
         helper.save_inference_samples(runs_dir, data_dir, sess, image_shape, logits, keep_prob, image_input)
