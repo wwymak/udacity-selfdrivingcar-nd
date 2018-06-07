@@ -140,8 +140,25 @@ class FCN:
         x = Dropout(0.5)(x)
         x = Conv2D(4096, (1, 1), activation='relu', padding='same', name='fc2', kernel_regularizer=l2(weight_decay))(x)
         x = Dropout(0.5)(x)
-        conv7_out = Conv2D(num_classes, (1, 1), activation='linear', padding='valid', strides=(1, 1),
+        conv7_out = Conv2D(num_classes, (1, 1), #activation='linear',
+                           padding='valid', strides=(1, 1),
                            kernel_regularizer=l2(weight_decay), name='decoder_conv7')(x)
+
+        decoder1_upsample = Conv2DTranspose(K.int_shape(vgg_conv4_out), kernel_size=4, strides=(2, 2),
+                                   padding='same',
+                                    kernel_regularizer=l2(weight_decay), name='decoder1_upsample')(conv7_out)
+
+        decoder2_skip = Add()([decoder1_upsample, vgg_conv4_out], name='decoder2_skip')
+
+        decoder3_upsample = Conv2DTranspose(K.int_shape(vgg_conv3_out),
+                                            kernel_size=4, strides=(2, 2),
+                                            padding='same',
+                                            kernel_regularizer=l2(weight_decay),
+                                            name='decoder3_upsample')(decoder2_skip)
+
+        decoder4_skip = Add()([decoder3_upsample, vgg_conv3_out], name='decoder4_skip')
+
+        # decoder5_
 
         # decoder network
         vgg_conv4_conv1x1 = Conv2D(num_classes, (1, 1), activation='relu', padding='valid', strides=(1, 1),

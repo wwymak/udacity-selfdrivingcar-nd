@@ -21,9 +21,10 @@ print('TensorFlow Version: {}'.format(tf.__version__))
 
 l2_weight_decay = 1e-5
 reg_const = 1e-5
-learning_rate_val = 0.001
+learning_rate_val = 0.01
+# learning_rate_val = 0.001
 keep_prob_val = 0.5
-num_epochs = 1
+num_epochs = 10
 batch_size = 8
 num_classes = 2
 image_shape = (160, 576)
@@ -73,12 +74,16 @@ def load_vgg(sess, vgg_path):
     )
 
     graph = tf.get_default_graph()
-    # with tf.name_scope("vgg_base"):
-    image_input = graph.get_tensor_by_name(vgg_input_tensor_name)
-    keep_prob = graph.get_tensor_by_name(vgg_keep_prob_tensor_name)
-    vgg_layer3_out = graph.get_tensor_by_name(vgg_layer3_out_tensor_name)
-    vgg_layer4_out = graph.get_tensor_by_name(vgg_layer4_out_tensor_name)
-    vgg_layer7_out = graph.get_tensor_by_name(vgg_layer7_out_tensor_name)
+    with tf.name_scope("vgg_base"):
+        image_input = graph.get_tensor_by_name(vgg_input_tensor_name)
+        keep_prob = graph.get_tensor_by_name(vgg_keep_prob_tensor_name)
+        vgg_layer3_out = graph.get_tensor_by_name(vgg_layer3_out_tensor_name)
+        vgg_layer4_out = graph.get_tensor_by_name(vgg_layer4_out_tensor_name)
+        vgg_layer7_out = graph.get_tensor_by_name(vgg_layer7_out_tensor_name)
+
+        vgg_layer7_out = tf.stop_gradient(vgg_layer7_out)
+        vgg_layer4_out = tf.stop_gradient(vgg_layer4_out)
+        vgg_layer3_out = tf.stop_gradient(vgg_layer3_out)
 
         # tf.summary.image('image', t1)
         # tf.summary.histogram('vgg3', t3)
@@ -100,38 +105,38 @@ def layers(vgg_layer3_out, vgg_layer4_out, vgg_layer7_out, num_classes):
     :param num_classes: Number of classes to classify
     :return: The Tensor for the last layer of output
     """
-    # with tf.name_scope("decoder"):
-    layer7_conv1x1 = tf.layers.conv2d(vgg_layer7_out, num_classes,
-                                      # kernel_regularizer=tf.contrib.layers.l2_regularizer(l2_weight_decay),
-                                      kernel_size=1,
-                                      strides=1,
-                                      # padding='SAME',
-                                      name="layer7_conv1x1")
+    with tf.name_scope("decoder"):
+        layer7_conv1x1 = tf.layers.conv2d(vgg_layer7_out, num_classes,
+                                          # kernel_regularizer=tf.contrib.layers.l2_regularizer(l2_weight_decay),
+                                          kernel_size=1,
+                                          strides=1,
+                                          # padding='SAME',
+                                          name="layer7_conv1x1")
 
-    layer8_upsample = tf.layers.conv2d_transpose(layer7_conv1x1, vgg_layer4_out.get_shape().as_list()[-1],
-                                                 kernel_size=4,
-                                                 strides=2,
-                                                 # kernel_regularizer=tf.contrib.layers.l2_regularizer(l2_weight_decay),
-                                                 padding='SAME',
-                                                 name="layer8_upsample")
+        layer8_upsample = tf.layers.conv2d_transpose(layer7_conv1x1, vgg_layer4_out.get_shape().as_list()[-1],
+                                                     kernel_size=4,
+                                                     strides=2,
+                                                     # kernel_regularizer=tf.contrib.layers.l2_regularizer(l2_weight_decay),
+                                                     padding='SAME',
+                                                     name="layer8_upsample")
 
-    layer9_skip = tf.add(layer8_upsample, vgg_layer4_out, name="layer9_skip")
+        layer9_skip = tf.add(layer8_upsample, vgg_layer4_out, name="layer9_skip")
 
-    layer10_upsample = tf.layers.conv2d_transpose(layer9_skip, vgg_layer3_out.get_shape().as_list()[-1],
-                                                 kernel_size=4,
-                                                 strides=2,
-                                                 # kernel_regularizer=tf.contrib.layers.l2_regularizer(l2_weight_decay),
-                                                 padding='SAME',
-                                                 name="layer10_upsample")
-    layer11_skip = tf.add(layer10_upsample, vgg_layer3_out, name="layer11_skip")
+        layer10_upsample = tf.layers.conv2d_transpose(layer9_skip, vgg_layer3_out.get_shape().as_list()[-1],
+                                                     kernel_size=4,
+                                                     strides=2,
+                                                     # kernel_regularizer=tf.contrib.layers.l2_regularizer(l2_weight_decay),
+                                                     padding='SAME',
+                                                     name="layer10_upsample")
+        layer11_skip = tf.add(layer10_upsample, vgg_layer3_out, name="layer11_skip")
 
-    layer12_conv1x1 = tf.layers.conv2d_transpose(layer11_skip, num_classes,
-                                                 kernel_size=16,
-                                                 strides=8,
-                                                 padding='SAME',
-                                                 name="layer12_conv1x1")
+        layer12_conv1x1 = tf.layers.conv2d_transpose(layer11_skip, num_classes,
+                                                     kernel_size=16,
+                                                     strides=8,
+                                                     padding='SAME',
+                                                     name="layer12_conv1x1")
 
-    return layer12_conv1x1
+        return layer12_conv1x1
 
 # tests.test_layers(layers)
 
@@ -187,7 +192,7 @@ def train_nn(sess, epochs, batch_size, get_batches_fn, train_op, cross_entropy_l
     # sess.run(tf.local_variables_initializer())
 
 
-    # saver = tf.train.Saver(allow_empty=True)
+    saver = tf.train.Saver(allow_empty=True)
 
     # tfboard_summary = tf.summary.merge_all()
     # writer = tf.summary.FileWriter('tensorboard_graphs/fcn')
@@ -211,7 +216,7 @@ def train_nn(sess, epochs, batch_size, get_batches_fn, train_op, cross_entropy_l
             print("loss: ", loss, " step: ", step, " epoch: ", epoch)
             step += 1
             total_loss += loss
-        # saver.save(sess, 'checkpoints/fcn', global_step=epoch)
+        saver.save(sess, 'checkpoints/fcn', global_step=epoch)
 
 
 # tests.test_train_nn(train_nn)
