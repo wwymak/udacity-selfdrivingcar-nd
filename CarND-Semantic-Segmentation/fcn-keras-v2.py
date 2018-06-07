@@ -144,43 +144,48 @@ class FCN:
                            padding='valid', strides=(1, 1),
                            kernel_regularizer=l2(weight_decay), name='decoder_conv7')(x)
 
-        decoder1_upsample = Conv2DTranspose(K.int_shape(vgg_conv4_out), kernel_size=4, strides=(2, 2),
+        decoder1_upsample = Conv2DTranspose(K.int_shape(vgg_conv4_out)[-1], kernel_size=4, strides=(2, 2),
                                    padding='same',
                                     kernel_regularizer=l2(weight_decay), name='decoder1_upsample')(conv7_out)
 
-        decoder2_skip = Add()([decoder1_upsample, vgg_conv4_out], name='decoder2_skip')
+        decoder2_skip = Add(name='decoder2_skip')([decoder1_upsample, vgg_conv4_out])
 
-        decoder3_upsample = Conv2DTranspose(K.int_shape(vgg_conv3_out),
+        decoder3_upsample = Conv2DTranspose(K.int_shape(vgg_conv3_out)[-1],
                                             kernel_size=4, strides=(2, 2),
                                             padding='same',
                                             kernel_regularizer=l2(weight_decay),
                                             name='decoder3_upsample')(decoder2_skip)
 
-        decoder4_skip = Add()([decoder3_upsample, vgg_conv3_out], name='decoder4_skip')
+        decoder4_skip = Add(name='decoder4_skip')([decoder3_upsample, vgg_conv3_out])
 
-        # decoder5_
+        decoder5_upsample = Conv2DTranspose(num_classes,
+                                            kernel_size=16,  strides=(8,8),
+                                            padding='same',
+                                            kernel_regularizer=l2(weight_decay),
+                                            name='decoder5_upsample')(decoder4_skip)
+
 
         # decoder network
-        vgg_conv4_conv1x1 = Conv2D(num_classes, (1, 1), activation='relu', padding='valid', strides=(1, 1),
-                                   kernel_regularizer=l2(weight_decay),
-                                   name="layer4_conv1x1")(vgg_conv4_out)
+        # vgg_conv4_conv1x1 = Conv2D(num_classes, (1, 1), activation='relu', padding='valid', strides=(1, 1),
+        #                            kernel_regularizer=l2(weight_decay),
+        #                            name="layer4_conv1x1")(vgg_conv4_out)
+        #
+        # vgg_conv3_conv1x1 = Conv2D(num_classes, (1, 1), activation='relu', padding='valid', strides=(1, 1),
+        #                            kernel_regularizer=l2(weight_decay),
+        #                            name="layer3_conv1x1")(vgg_conv3_out)
+        #
+        # upsample1 = Conv2DTranspose(num_classes, kernel_size=4, strides=(2, 2), padding='same',
+        #                             kernel_regularizer=l2(weight_decay), name='upsample_1')(conv7_out)
+        #
+        # skip1 = Add()([upsample1, vgg_conv4_conv1x1])
+        # upsample2 = Conv2DTranspose(num_classes, kernel_size=4, strides=(2, 2), padding='same',
+        #                             kernel_regularizer=l2(weight_decay), name='upsample_2')(skip1)
+        #
+        # skip2 = Add()([upsample2, vgg_conv3_conv1x1])
+        # upsample3 = Conv2DTranspose(num_classes, kernel_size=16, strides=(8, 8), padding='same',
+        #                             kernel_regularizer=l2(weight_decay), name='upsample_3')(skip2)
 
-        vgg_conv3_conv1x1 = Conv2D(num_classes, (1, 1), activation='relu', padding='valid', strides=(1, 1),
-                                   kernel_regularizer=l2(weight_decay),
-                                   name="layer3_conv1x1")(vgg_conv3_out)
-
-        upsample1 = Conv2DTranspose(num_classes, kernel_size=4, strides=(2, 2), padding='same',
-                                    kernel_regularizer=l2(weight_decay), name='upsample_1')(conv7_out)
-
-        skip1 = Add()([upsample1, vgg_conv4_conv1x1])
-        upsample2 = Conv2DTranspose(num_classes, kernel_size=4, strides=(2, 2), padding='same',
-                                    kernel_regularizer=l2(weight_decay), name='upsample_2')(skip1)
-
-        skip2 = Add()([upsample2, vgg_conv3_conv1x1])
-        upsample3 = Conv2DTranspose(num_classes, kernel_size=16, strides=(8, 8), padding='same',
-                                    kernel_regularizer=l2(weight_decay), name='upsample_3')(skip2)
-
-        model = Model(img_input, upsample3)
+        model = Model(img_input, decoder5_upsample)
 
         layers_list = model.layers
         index = {}
@@ -289,6 +294,8 @@ class FCN:
                                           # validation_data=val_generator, validation_steps=2,
                                           callbacks=callbacks,
                                           initial_epoch=0)
+
+        return model_fcn, history
 
 
 
