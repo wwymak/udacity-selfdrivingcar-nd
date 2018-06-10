@@ -1,7 +1,9 @@
-import tensorflow as tf
-import helper
 import warnings
 warnings.simplefilter(action='ignore', category=FutureWarning)
+warnings.filterwarnings("ignore", category=DeprecationWarning)
+
+import tensorflow as tf
+import helper
 
 from distutils.version import LooseVersion
 import project_tests as tests
@@ -18,11 +20,9 @@ if not tf.test.gpu_device_name():
 else:
     print('Default GPU Device: {}'.format(tf.test.gpu_device_name()))
 
-
-
+# can do a bit more hyperparam exploring but these are the nice ones so far
 l2_weight_decay = 1e-5
 reg_const = 1e-5
-# learning_rate_val = 0.01
 learning_rate_val = 0.001
 keep_prob_val = 0.5
 num_epochs = 40
@@ -85,9 +85,6 @@ def load_vgg(sess, vgg_path, freeze_vgg_top=False):
     return image_input, keep_prob, layer3, layer4, layer7
 
 
-# test_load_vgg(load_vgg, tf)
-
-
 def layers(vgg_layer3_out, vgg_layer4_out, vgg_layer7_out, num_classes):
     """
     Create the layers for a fully convolutional network.  Build skip-layers using the vgg layers.
@@ -141,9 +138,6 @@ def layers(vgg_layer3_out, vgg_layer4_out, vgg_layer7_out, num_classes):
         return layer12_conv1x1
 
 
-# test_layers(layers)
-
-
 def optimize(nn_last_layer, correct_label, learning_rate, num_classes):
     """
     Build the TensorFLow loss and optimizer operations.
@@ -176,11 +170,8 @@ def optimize(nn_last_layer, correct_label, learning_rate, num_classes):
     return logits, optimizer, cross_entropy_loss, mean_IOU_update
 
 
-# test_optimize(optimize)
-
-
 def train_nn(sess, epochs, batch_size, get_batches_fn, train_op, cross_entropy_loss, input_image,
-             correct_label, keep_prob, learning_rate, iou_op):
+             correct_label, keep_prob, learning_rate, iou_op=None):
     """
     Train neural network and print out the loss during training.
     :param sess: TF Session
@@ -210,20 +201,28 @@ def train_nn(sess, epochs, batch_size, get_batches_fn, train_op, cross_entropy_l
 
         total_loss = 0
         for imgs, gt_labels in get_batches_fn(batch_size):
+            if not iou_op:
+                _, loss = sess.run([train_op, cross_entropy_loss], feed_dict={
+                    input_image: imgs,
+                    correct_label: gt_labels,
+                    keep_prob: keep_prob_val,
+                    learning_rate: learning_rate_val})
+
             # only run the summary op every 10 steps to reduce computation
-            if step % 10:
-                _, loss, iou, summary = sess.run([train_op, cross_entropy_loss, iou_op, tfboard_summary], feed_dict={
-                    input_image: imgs,
-                    correct_label: gt_labels,
-                    keep_prob: keep_prob_val,
-                    learning_rate: learning_rate_val})
-                writer.add_summary(summary, global_step=step)
             else:
-                _, loss, iou = sess.run([train_op, cross_entropy_loss, iou_op], feed_dict={
-                    input_image: imgs,
-                    correct_label: gt_labels,
-                    keep_prob: keep_prob_val,
-                    learning_rate: learning_rate_val})
+                if step % 10:
+                    _, loss, iou, summary = sess.run([train_op, cross_entropy_loss, iou_op, tfboard_summary], feed_dict={
+                        input_image: imgs,
+                        correct_label: gt_labels,
+                        keep_prob: keep_prob_val,
+                        learning_rate: learning_rate_val})
+                    writer.add_summary(summary, global_step=step)
+                else:
+                    _, loss, iou = sess.run([train_op, cross_entropy_loss, iou_op], feed_dict={
+                        input_image: imgs,
+                        correct_label: gt_labels,
+                        keep_prob: keep_prob_val,
+                        learning_rate: learning_rate_val})
 
             step += 1
             total_loss += loss
@@ -232,11 +231,7 @@ def train_nn(sess, epochs, batch_size, get_batches_fn, train_op, cross_entropy_l
         saver.save(sess, checkpoint_dir, global_step=step)
 
 
-# test_train_nn(train_nn)
-
-
 def run():
-    #     test_for_kitti_dataset(data_dir)
 
     helper.safe_mkdir('checkpoints')
     helper.safe_mkdir('tensorboard_graphs')
@@ -280,5 +275,21 @@ def run():
         print('done')
 
 
+def run_tests():
+    warnings.filterwarnings('ignore', category=FutureWarning)
+    warnings.filterwarnings("ignore", category=DeprecationWarning)
+
+    helper.clear_gpu()
+    tests.test_load_vgg(load_vgg, tf)
+    tests.test_layers(layers)
+    tests.test_optimize(optimize)
+    tests.test_train_nn(train_nn)
+    tests.test_for_kitti_dataset(data_dir)
+
+    print('passed all tests')
+
+
 if __name__ == '__main__':
-    run()
+    # separate out the tests and the actual code execution otherwise the tf graph gets messed up
+    run_tests()
+    # run()

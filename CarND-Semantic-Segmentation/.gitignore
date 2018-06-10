@@ -2,6 +2,7 @@ tensorboard_graphs
 debug.py
 *.zip
 runs/
+submission/
 
 *.h5
 checkpoints/

@@ -1,6 +1,8 @@
 import warnings
 warnings.simplefilter(action='ignore', category=FutureWarning)
 
+# TODO for whatever reason this keras implementation trains really slowy and have memory issues-- need to debug properly
+
 import tensorflow as tf
 # from tensorboard
 from keras.models import *
