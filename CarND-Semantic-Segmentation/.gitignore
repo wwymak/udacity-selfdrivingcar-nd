@@ -1,5 +1,7 @@
 tensorboard_graphs
 debug.py
+*.zip
+runs/
 
 *.h5
 checkpoints/

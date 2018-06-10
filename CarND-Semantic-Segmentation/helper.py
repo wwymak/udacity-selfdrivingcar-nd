@@ -7,6 +7,7 @@ import shutil
 import zipfile
 import time
 import tensorflow as tf
+import keras.backend as K
 from glob import glob
 from urllib.request import urlretrieve
 from tqdm import tqdm
@@ -20,12 +21,20 @@ class DLProgress(tqdm):
         self.update((block_num - self.last_block) * block_size)
         self.last_block = block_num
 
+# make directory if not exists
 def safe_mkdir(path):
     """ Create a directory if there isn't one already. """
     try:
         os.mkdir(path)
     except OSError:
         pass
+
+# clear the gpu sessions (from http://forums.fast.ai/t/tip-clear-tensorflow-gpu-memory/1979)
+def clear_gpu():
+    K.get_session().close()
+    cfg = K.tf.ConfigProto()
+    cfg.gpu_options.allow_growth = True
+    K.set_session(K.tf.Session(config=cfg))
 
 def maybe_download_pretrained_vgg(data_dir):
     """
